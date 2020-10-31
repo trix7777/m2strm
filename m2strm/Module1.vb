@@ -84,7 +84,7 @@ Module Module1
             'Delete previously created directories
             If param2.ToLower = "/d" Then
                 Console.WriteLine("Deleting previously created directories...")
-                Reader.ReadLine(5000)
+                Threading.Thread.Sleep(5000)
                 If My.Computer.FileSystem.DirectoryExists(folder_Movies) Then
                     My.Computer.FileSystem.DeleteDirectory(folder_Movies, FileIO.DeleteDirectoryOption.DeleteAllContents)
                 End If
@@ -94,7 +94,7 @@ Module Module1
             Else
                 Console.WriteLine("Info: /D switch not specified.")
                 Console.WriteLine("Info: No deletion of previously created directories will occur.")
-                Reader.ReadLine(5000)
+                Threading.Thread.Sleep(5000)
             End If
 
             'Create directories
