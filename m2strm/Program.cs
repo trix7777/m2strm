@@ -1,14 +1,13 @@
 ﻿using System;
-using Microsoft.VisualBasic;
 using System.IO;
 using System.Text.RegularExpressions;
 
 namespace m2strm
 {
-	sealed class Program
+	class Program
 	{
 
-		public static void Main(string[] args)
+		static void Main(string[] args)
 		{
 			try
 			{
@@ -68,7 +67,7 @@ namespace m2strm
 					}
 					else if (args[0].ToLower().Contains("m3u"))
 					{
-						if ((new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.FileExists(m3u8) == false)
+						if (!File.Exists(m3u8))
 						{
 							Console.WriteLine("File not found - " + args[0]);
 							Console.WriteLine("Type /? for help");
@@ -111,33 +110,39 @@ namespace m2strm
 				if (param2.ToLower() == "/d")
 				{
 					Console.WriteLine("Deleting previously created directories...");
-					System.Threading.Thread.Sleep(5000);
-					if ((new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.DirectoryExists(folder_Movies))
+					//System.Threading.Thread.Sleep(5000);
+
+					if (Directory.Exists(folder_Movies))
 					{
-						(new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.DeleteDirectory(folder_Movies, Microsoft.VisualBasic.FileIO.DeleteDirectoryOption.DeleteAllContents);
+                        Directory.Delete(folder_Movies, true);
 					}
-					if ((new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.DirectoryExists(folder_Series))
+
+					if (Directory.Exists(folder_Series))
 					{
-						(new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.DeleteDirectory(folder_Series, Microsoft.VisualBasic.FileIO.DeleteDirectoryOption.DeleteAllContents);
+						Directory.Delete(folder_Series, true);
 					}
 				}
 				else
 				{
 					Console.WriteLine("Info: /D switch not specified.");
 					Console.WriteLine("Info: No deletion of previously created directories will occur.");
-					System.Threading.Thread.Sleep(5000);
+					//System.Threading.Thread.Sleep(5000);
 				}
 
 				//Create directories
-				(new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.CreateDirectory(folder_Movies);
-				(new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.CreateDirectory(folder_Series);
+				Directory.CreateDirectory(folder_Movies);
+				Directory.CreateDirectory(folder_Series);
 
 				//M3U
-				if ((new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.FileExists(m3u8) == true)
+				if (File.Exists(m3u8))
 				{
-					string FileText = (new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.ReadAllText(m3u8);
+					string FileText = File.ReadAllText(m3u8);
 
-					string[] FileText_lines = FileText.Split(Constants.vbLf.ToCharArray());
+					//Normalize linefeed
+					FileText = FileText.Replace("\r\n", "\n");
+					string Newline = ("\n");
+
+					string[] FileText_lines = FileText.Split(Newline.ToCharArray());
 					for (var index = 1; index <= FileText_lines.Length - 1; index++)
 					{
 						string line1 = FileText_lines[(int)index];
@@ -172,23 +177,28 @@ namespace m2strm
 							//Name
 							NAME = System.Convert.ToString(line1.Substring(Start_Name, Start_Logo - Start_Name - 12).Replace("&", ""));
 							//URL
-							URL = System.Convert.ToString(line2.Replace("\r\n", "").Replace(Constants.vbCr, ""));
+							URL = System.Convert.ToString(line2);
 
 							//############################## FILTER START ##############################
 
-							//Replace with dash
-							NAME = NAME.Replace(":", "-");
+							//Extra conversion -- to make mono output more like Windows
 							NAME = NAME.Replace("/", "-");
+							NAME = NAME.Replace("\\", "-");
+							NAME = NAME.Replace("?", "");
+							//NAME = NAME.Replace("%", "_");  //RT-11 only
+							NAME = NAME.Replace("*", "-");
+							NAME = NAME.Replace(":", "-");
 							NAME = NAME.Replace("|", "-");
-
-							//Replace with space
-							//NAME = NAME.Replace(".", " ")
-
-							//Replace with nothing
+							NAME = NAME.Replace("\"", "-");
+							NAME = NAME.Replace("<", "");
+							NAME = NAME.Replace(">", "");
+							//NAME = NAME.Replace(".", "");  //Ok as long as not last
 							NAME = NAME.Replace(",", "");
+							NAME = NAME.Replace(";", "-");
+							NAME = NAME.Replace("=", "-");
 
 							//Call the RemoveIllegalFileNameChars function
-							NAME = System.Convert.ToString(RemoveIllegalFileNameChars(NAME).Trim());
+							NAME = System.Convert.ToString(RemoveIllegalFileNameChars(NAME));
 
 							//Replace without name with NONAME
 							NAME = Regex.Replace(NAME, "^$", "NONAME");
@@ -293,12 +303,12 @@ namespace m2strm
 							string folder = "";
 							if (GROUP.ToLower().Contains("series"))
 							{
-
 								//Combine series
 								folder = folder_Series + Path.DirectorySeparatorChar + NAME;
 								//folder = Regex.Replace(folder, "s(\d+) e(\d+)", "", RegexOptions.IgnoreCase).Trim
 								//removed non-used capture groups and changed to the new sxxexx after replace above
 								folder = Regex.Replace(folder, "s\\d+e\\d+", "", RegexOptions.IgnoreCase).Trim();
+								folder = folder.Trim(".".ToCharArray());  //Removes leading and trailing period from folder
 								Console.WriteLine("series: " + NAME + " found");
 								counter_Series++;
 							}
@@ -309,16 +319,21 @@ namespace m2strm
 								counter_Movie++;
 							}
 
-							//Create folder
-							if ((new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.DirectoryExists(folder) == false)
+							//Create folder -- behaves differently depending on OS;
+							// For example, if there are two titles:
+							// MovieTitle (1)
+							// Movietitle (2)
+							// Windows will not create 2 when 1 exists, it will respond "already exists" because of no caring of cASE
+							// Linux will create both title 1 and 2
+							if (!Directory.Exists(folder))
 							{
-								(new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.CreateDirectory(folder);
+								Directory.CreateDirectory(folder);
 							}
 
 							//Create .strm file
-							if ((new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.FileExists(folder + Path.DirectorySeparatorChar + NAME + ".strm") == false)
+							if (!File.Exists(folder + Path.DirectorySeparatorChar + NAME + ".strm"))
 							{
-								(new Microsoft.VisualBasic.Devices.ServerComputer()).FileSystem.WriteAllText(folder + Path.DirectorySeparatorChar + NAME + ".strm", URL, false);
+								File.WriteAllText(folder + Path.DirectorySeparatorChar + NAME + ".strm", URL);
 							}
 
 						}
