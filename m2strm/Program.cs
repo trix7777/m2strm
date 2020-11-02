@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace m2strm
 {
@@ -9,42 +10,50 @@ namespace m2strm
 
 		static void Main(string[] args)
 		{
+			Stopwatch stopWatch = new Stopwatch();
+			stopWatch.Start();
 			try
 			{
-				string creator = "Original code by TimTester, forked and converted to c# (mono compat) by trix77";
-				Console.WriteLine(creator);
+				//Console output on/off
+				bool consoleOut = true;
 
+				//Get Creator, Location, FileName and Version
+				string Creator = "Original code by TimTester.\nForked and converted to c# (mono compatible) by trix77.\n";
+				string Location = System.Convert.ToString(Environment.GetCommandLineArgs()[0]);
+				string FileName = Path.GetFileName(Location);
+				string Version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+				//Write to console
+				Console.WriteLine(Creator);
+
+				//Set counters
 				int counter_Movie = 0;
 				int counter_Series = 0;
-
-				//Get location, appName and version
-				string location = System.Convert.ToString(Environment.GetCommandLineArgs()[0]);
-				string appName = Path.GetFileName(location);
-				string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
 				//m3u8
 				string m3u8 = "";
 				string param2 = "";
-				param2 = "";
+				//param2 = "";
 
 				//Check args
 				if (args.Length > 0)
 				{
 					m3u8 = args[0];
-					if (args[0] == "/?")
+					if (args[0] == "/?" || args[0] == "-?" || args[0].ToLower() == "/h" || args[0].ToLower() == "-h" || args[0].ToLower() == "/help" || args[0].ToLower() == "-help" || args[0].ToLower() == "--help")
 					{
 						Console.WriteLine("Creates STRM-files from M3U8-file.");
 						Console.WriteLine("");
-						Console.WriteLine(appName + " [drive:][path]filename [/D]");
+						Console.WriteLine(FileName + " [drive:][path]filename [/D]");
 						Console.WriteLine("");
 						Console.WriteLine("  filename    Specifies the M3U8-file to be processed.");
 						Console.WriteLine("");
 						Console.WriteLine("  /D          Delete previously created directories.");
-						Console.WriteLine("  /V          Version information.");
+						Console.WriteLine("  /V          Version.");
+						Console.WriteLine("  /? or /H    This help.");
 						Console.WriteLine("");
 						Console.WriteLine("Examples:");
-						Console.WriteLine(appName + " original.m3u8");
-						Console.WriteLine(appName + " original.m3u8 /D");
+						Console.WriteLine(FileName + " original.m3u8");
+						Console.WriteLine(FileName + " original.m3u8 /d");
 						return;
 					}
 					else if (args[0].ToLower() == "/d")
@@ -55,8 +64,8 @@ namespace m2strm
 					}
 					else if (args[0].ToLower() == "/v")
 					{
-						Console.WriteLine("Filename: " + appName);
-						Console.WriteLine("Version: " + version);
+						Console.WriteLine("Filename: " + FileName);
+						Console.WriteLine("Version: " + Version);
 						return;
 					}
 					else if (args[0].StartsWith("/"))
@@ -103,13 +112,13 @@ namespace m2strm
 
 				//Read file
 				string Main_folder = System.AppDomain.CurrentDomain.BaseDirectory;
-				string folder_Movies = Main_folder + Path.DirectorySeparatorChar + "Movies";
-				string folder_Series = Main_folder + Path.DirectorySeparatorChar + "Series";
+				string folder_Movies = Path.Combine(Main_folder, "Movies");
+				string folder_Series = Path.Combine(Main_folder, "Series");
 
 				//Delete previously created directories
 				if (param2.ToLower() == "/d")
 				{
-					Console.WriteLine("Deleting previously created directories...");
+					Console.WriteLine("*** Deleting previously created directories...");
 					//System.Threading.Thread.Sleep(5000);
 
 					if (Directory.Exists(folder_Movies))
@@ -124,18 +133,18 @@ namespace m2strm
 				}
 				else
 				{
-					Console.WriteLine("Info: /D switch not specified.");
-					Console.WriteLine("Info: No deletion of previously created directories will occur.");
+					Console.WriteLine("Note: No deletion of previously created directories (use /D).");
 					//System.Threading.Thread.Sleep(5000);
 				}
 
 				//Create directories
-				Directory.CreateDirectory(folder_Movies);
-				Directory.CreateDirectory(folder_Series);
+				//Directory.CreateDirectory(folder_Movies);
+				//Directory.CreateDirectory(folder_Series);
 
 				//M3U
 				if (File.Exists(m3u8))
 				{
+					Console.WriteLine("*** Processing " + m3u8);
 					string FileText = File.ReadAllText(m3u8);
 
 					//Normalize linefeed
@@ -301,21 +310,27 @@ namespace m2strm
 
 							//Check if series or movie
 							string folder = "";
+							
+
 							if (GROUP.ToLower().Contains("series"))
 							{
 								//Combine series
-								folder = folder_Series + Path.DirectorySeparatorChar + NAME;
-								//folder = Regex.Replace(folder, "s(\d+) e(\d+)", "", RegexOptions.IgnoreCase).Trim
-								//removed non-used capture groups and changed to the new sxxexx after replace above
+								folder = Path.Combine(folder_Series, NAME);
 								folder = Regex.Replace(folder, "s\\d+e\\d+", "", RegexOptions.IgnoreCase).Trim();
 								folder = folder.Trim(".".ToCharArray());  //Removes leading and trailing period from folder
-								Console.WriteLine("series: " + NAME + " found");
+								if (consoleOut == true)
+								{
+									Console.WriteLine("series: " + NAME + " found");
+								}
 								counter_Series++;
 							}
 							if (GROUP.ToLower().Contains("movie"))
 							{
-								folder = folder_Movies + Path.DirectorySeparatorChar + NAME;
-								Console.WriteLine("movie: " + NAME + " found");
+								folder = Path.Combine(folder_Movies, NAME);
+								if (consoleOut == true)
+								{
+									Console.WriteLine("movie: " + NAME + " found");
+								}
 								counter_Movie++;
 							}
 
@@ -331,9 +346,9 @@ namespace m2strm
 							}
 
 							//Create .strm file
-							if (!File.Exists(folder + Path.DirectorySeparatorChar + NAME + ".strm"))
+							if (!File.Exists(Path.Combine(folder, NAME) + ".strm"))
 							{
-								File.WriteAllText(folder + Path.DirectorySeparatorChar + NAME + ".strm", URL);
+								File.WriteAllText(Path.Combine(folder, NAME) + ".strm", URL);
 							}
 
 						}
@@ -342,16 +357,10 @@ namespace m2strm
 							continue;
 						}
 					}
-
 					Console.WriteLine("");
-					Console.WriteLine("");
-					Console.WriteLine(counter_Movie + " movies found");
-					Console.WriteLine(counter_Series + " series found");
-					Console.WriteLine("");
-					Console.WriteLine("");
-
-					Console.WriteLine(creator);
-
+					Console.WriteLine("Summary:");
+					Console.WriteLine("Found " + counter_Movie + " movies");
+					Console.WriteLine("Found " + counter_Series + " series");
 				}
 				else
 				{
@@ -366,7 +375,12 @@ namespace m2strm
 				Console.WriteLine("Error: " + ex.StackTrace);
 				Console.ReadLine();
 			}
-
+			stopWatch.Stop();
+			TimeSpan ts = stopWatch.Elapsed;
+			string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+			ts.Hours, ts.Minutes, ts.Seconds,
+			ts.Milliseconds / 10);
+			Console.WriteLine("Processing time: " + elapsedTime);
 		}
 
 		public static string RemoveIllegalFileNameChars(string input, string replacement = "")
