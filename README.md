@@ -44,7 +44,7 @@ Create configuration with /C and then edit the configuration for your needs.
   
 BaseDirectory: Where the processed content should be output to.  
 - Default value is "" (which translates to the directory where m2strm.exe is running from).  
-- Example value: "X:\videos\strm\" or "\home\trix77\strm\"  
+- Example value: "X:\videos\strm\\" or "/home/trix77/strm/"  
 
 m3u8File: Where your M3U8-file is located.  
 - Default value is ""  
