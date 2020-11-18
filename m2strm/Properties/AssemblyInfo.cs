@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Resources;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -10,8 +11,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("trix77")]
 [assembly: AssemblyProduct("m2strm")]
-[assembly: AssemblyCopyright("Copyright © trix77 2020")]
-[assembly: AssemblyTrademark("trix77")]
+[assembly: AssemblyCopyright("© 2020 trix77. All rights reserved.")]
+[assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -20,7 +21,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("dc30f6a3-e873-444e-9ee7-58d5d5e78689")]
+[assembly: Guid("66249fdb-ad4d-4d41-856b-7a82cb1106e2")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -32,5 +33,6 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.2.4.1337")]
-[assembly: AssemblyFileVersion("1.2.4.1337")]
+[assembly: AssemblyVersion("3.0.0.0")]
+[assembly: AssemblyFileVersion("3.0.0.0")]
+[assembly: NeutralResourcesLanguage("")]
