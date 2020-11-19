@@ -47,6 +47,7 @@ namespace m2strm
 
                 //Default settings, can be overridden in config or in args
                 string BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string OutDirectory = BaseDirectory;
                 string m3u8File = "";
                 string Movies = "VOD Movies";
                 string Series = "VOD Series";
@@ -64,6 +65,9 @@ namespace m2strm
                 //Get settings from external config
                 if (ConfigurationManager.AppSettings.Get("BaseDirectory") != null && ConfigurationManager.AppSettings.Get("BaseDirectory") != "")
                     BaseDirectory = ConfigurationManager.AppSettings.Get("BaseDirectory");
+
+                if (ConfigurationManager.AppSettings.Get("OutDirectory") != null && ConfigurationManager.AppSettings.Get("OutDirectory") != "")
+                    OutDirectory = ConfigurationManager.AppSettings.Get("OutDirectory");
 
                 if (ConfigurationManager.AppSettings.Get("Movies") != null && ConfigurationManager.AppSettings.Get("Movies") != "")
                     Movies = ConfigurationManager.AppSettings.Get("Movies");
@@ -113,9 +117,9 @@ namespace m2strm
                 string UserURLFull = (UserURL + ":" + UserPort + "/get.php?username=" + UserName + "&password=" + UserPass + "&type=m3u_plus&output=ts");
 
                 //Combine to output dirs
-                string MoviesDir = Path.Combine(BaseDirectory, Movies);
-                string SeriesDir = Path.Combine(BaseDirectory, Series);
-                string TVDir = Path.Combine(BaseDirectory, TV);
+                string MoviesDir = Path.Combine(OutDirectory, Movies);
+                string SeriesDir = Path.Combine(OutDirectory, Series);
+                string TVDir = Path.Combine(OutDirectory, TV);
 
                 //Check if args is given
                 if (args.Length > 0)
@@ -157,8 +161,7 @@ namespace m2strm
                     else if (args[0].ToLower() == "/m")
                     {
                         Console.WriteLine("*** Downloading M3U8-file to: " + Userm3u8File);
-                        //webClient.DownloadFile(new Uri(UserURLFull), Userm3u8File);
-                        Console.WriteLine(UserURLFull);
+                        webClient.DownloadFile(new Uri(UserURLFull), Userm3u8File);
                         return;
                     }
                     else if (args[0].ToLower() == "/v")
@@ -169,8 +172,9 @@ namespace m2strm
                     }
                     else if (args[0].ToLower() == "/c")
                     {
-                        //Remove user config values
+                        //Remove user config values  OutDirectory
                         UserSettings.Add("BaseDirectory", "");
+                        UserSettings.Add("OutDirectory", "");
                         UserSettings.Add("m3u8File", "");
                         UserSettings.Add("Movies", "");
                         UserSettings.Add("Series", "");
@@ -186,6 +190,7 @@ namespace m2strm
                         UserSettings.Add("UserPass", "");
                         //Set default user config values
                         UserSettings["BaseDirectory"].Value = BaseDirectory;
+                        UserSettings["OutDirectory"].Value = OutDirectory;
                         UserSettings["m3u8File"].Value = m3u8File;
                         UserSettings["Movies"].Value = Movies;
                         UserSettings["Series"].Value = Series;
@@ -381,8 +386,7 @@ namespace m2strm
                 if (DownloadM3U8Enabled == true)
                 {
                     Console.WriteLine("*** Downloading M3U8-file to: " + Userm3u8File);
-
-                    //webClient.DownloadFile(new Uri(UserURLFull), Userm3u8File);
+                    webClient.DownloadFile(new Uri(UserURLFull), Userm3u8File);
                     //Console.WriteLine(UserURLFull);
                     
                     if (m3u8File != null || m3u8File != "")

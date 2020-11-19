@@ -17,7 +17,8 @@ Tested with IPTV-providers:
   
   
 ### How to use  
-X:\build\m2strm\bin\Debug>m2strm.exe /?  
+m2strm.exe /?  
+
 Creates STRM-files from M3U8-file.  
   
 m2strm.exe [OPTIONS] [drive:][path][filename]  
@@ -32,8 +33,8 @@ m2strm.exe [OPTIONS] [drive:][path][filename]
   /V              Version information.  
   /? or /H        This help.  
   
-Configuration file: X:\build\m2strm\bin\Debug\m2strm.exe.config  
-Unwanted groups file: X:\build\m2strm\bin\Debug\uwgroups.cfg  
+Configuration file: X:\m2strm\m2strm.exe.config  
+Unwanted groups file: X:\m2strm\uwgroups.cfg  
   
 Example usage:  
 m2strm.exe my.m3u8  
@@ -42,9 +43,13 @@ m2strm.exe my.m3u8
 ### Configuration file  
 Create configuration with /C and then edit the configuration for your needs.  
   
-BaseDirectory: Where the processed content should be output to.  
+BaseDirectory: Where the process is working and where the config files are.  
 - Default value is "" (which translates to the directory where m2strm.exe is running from).  
-- Example value: "X:\videos\strm\\" or "/home/trix77/strm/"  
+- Example value: "X:\myapp\m2strm\\" or "/home/trix77/m2strm/"  
+
+OutDirectory: Where the processed content should be output to.  
+- Default value is "" (which translates to the directory where m2strm.exe is running from).  
+- Example value: "X:\videos\strm\\" or "\\server\videos\strm\\"  
 
 m3u8File: Where your M3U8-file is located.  
 - Default value is ""  
@@ -92,4 +97,8 @@ Create a fully populated unwanted groups file with /U and then edit this file an
 //etc  
 - To make use of the unwanted groups file, UnwantedCFGEnabled must be set to True (default).  
   
-  
+### Using this app in Mono
+You need to install Mono to use this program under Linux OS. In Debian that is:
+$ sudo apt-get install mono-devel mono-vbnc
+
+Then run the program with: mono m2strm.exe
