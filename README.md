@@ -46,7 +46,7 @@ Create configuration with /C and then edit the configuration for your needs.
 BaseDirectory: Where the process is working and where the config files are.  
 - Default value is "" (which translates to the directory where m2strm.exe is running from).  
 - Example value: "X:\myapp\m2strm\\" or "/home/trix77/m2strm/"  
-
+  
 OutDirectory: Where the processed content should be output to.  
 - Default value is "" (which translates to the directory where m2strm.exe is running from).  
 - Example value: "X:\videos\strm\\" or "\\server\videos\strm\\"  
@@ -97,8 +97,20 @@ Create a fully populated unwanted groups file with /U and then edit this file an
 //etc  
 - To make use of the unwanted groups file, UnwantedCFGEnabled must be set to True (default).  
   
-### Using this app in Mono
-You need to install Mono to use this program under Linux OS. In Debian that is:
-$ sudo apt-get install mono-devel mono-vbnc
-
-Then run the program with: mono m2strm.exe
+### Using this app with Mono  
+You need to install Mono to use this program under Linux OS. In Debian that is:  
+$ sudo apt-get install mono-devel mono-vbnc  
+  
+Then run the program with: mono m2strm.exe  
+  
+### Notes about differences running under a Windows or a Linux environment:  
+- UNC network paths:  
+Windows: Network paths like "\\myserver\somepath" can be used.  
+Linux: Use a local or a mounted network location path instead.  
+- Case sensitivity:  
+Windows: NTFS does not normally differentiate between upper or lower case letters in filenames, so when this program encounters two titles, the first one named "This Title" and the second one named "This title", it will se them both as the same title and only create output from the first one it finds in the source file, the second one will be seen as a duplicate.  
+Linux: Will output both titles as separate titles according to case.  
+- Illegal printable file characters, names and path length:  
+This program will try its best to make the output more or less the same no matter which platform it is running from. This might however set unnecessary restrictions to Linux filesystems. One example is the file path + filename length which normally in Windows is no more than 260 characters.  
+  
+  
