@@ -3,7 +3,7 @@ Creates STRM-files from M3U8-file.
   
 Original developer: [TimTester.in](https://timtester.in/)  
   
-New in version 3.0 alpha 1:  
+New in version 3.0:  
 - Configuration file: You can now use a configuration file for all user settings. Read more about the options for this file later on this page.  
 - Unwanted groups file: this file contains groups you do not want to process. Read more about the options for this file later on this page.  
 - Error log enable/disable.  
