@@ -6,10 +6,11 @@ Original developer: [TimTester.in](https://timtester.in/)
 New in version 3.0:  
 - Configuration file: You can now use a configuration file for all user settings. Read more about the options for this file later on this page.  
 - Unwanted groups file: this file contains groups you do not want to process. Read more about the options for this file later on this page.  
-- Error log enable/disable.  
+- Program log enable/disable.  
 - Download M3U8-file: download your m3u8 directly from your IPTV-provider and then process it in one go.  
 - Fully Mono compatible = runs on Linux with Mono installed - see [here](https://www.mono-project.com/docs/getting-started/install/linux/)  
 - Even more...  still working on it.  
+- TODO: Among other features coming up, next up is updating and purging of old strm-files.  
   
   
 Tested with IPTV-providers:  
@@ -59,7 +60,7 @@ Movies, Series, TV: Sub-directory names for your movies, series and tv content.
 - Default values are respectively: "VOD Movies", "VOD Series", "TV Channels"  
   
 DeletePreviousDirEnabled  
-- Default value is "True" -- previously created directories will be deleted before processing starts.  
+- Default value is "False" -- previously created directories will not be deleted before processing starts.  
 Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).  
   
 UnwantedCFGEnabled  
@@ -70,9 +71,11 @@ VerboseConsoleOutputEnabled
 - Default value is "False" -- will not output found items to console.  
 Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).  
   
-ErrorLogEnabled  
-- Default value is "False" -- will not create the error log.  
+ProgramLogEnabled  
+- Default value is "True" -- will create the program log. Will also create uwgroups.log and allgroups.log (see below).
 Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).  
+uwgroups.log contains the groups NOT in or commented out in uwgroups.cfg.
+allgroups.log contains all groups found in source just like /U does but outputs to allgroups.log instead, during each parse.
   
 DownloadM3U8Enabled  
 - Default value is "False" -- will not try to download a M3U8-file.  
@@ -112,5 +115,9 @@ Windows: NTFS does not normally differentiate between upper or lower case letter
 Linux: Will output both titles as separate titles according to case.  
 - Illegal printable file characters, names and path length:  
 This program will try its best to make the output more or less the same no matter which platform it is running from. This might however set unnecessary restrictions to Linux filesystems. One example is the file path + filename length which normally in Windows is no more than 260 characters.  
+  
+### Notes about dupes:  
+- So what is a dupe according to the programming?  
+All titles found in the source are "filtered" though a special process, some characters are removed, some are replaced. Also all "tags" (everything in the title name that are within brackets, but the year, are considered to be a tag) are removed from the title. This process can in it self, as a side effect, create dupes. An example would be these two titles: "The Title [PRE] [2020]" and "The Title [2020]", which both through this filter will become the same "The Title (2020)".  
   
   
