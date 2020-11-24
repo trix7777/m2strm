@@ -22,12 +22,18 @@ namespace m2strm
             stopWatch.Start();
             try
             {
-                //Set the counters to zero
+                //Set all counters to zero
                 int counter_Movies = 0;
+                int counter_MoviesDupe = 0;
+                int counter_MoviesUpdate = 0;
                 int counter_MoviesActual = 0;
                 int counter_Series = 0;
+                int counter_SeriesDupe = 0;
+                int counter_SeriesUpdate = 0;
                 int counter_SeriesActual = 0;
                 int counter_TV = 0;
+                int counter_TVDupe = 0;
+                int counter_TVUpdate = 0;
                 int counter_TVActual = 0;
 
                 //Define newline
@@ -118,9 +124,10 @@ namespace m2strm
                 //allgFile logs all groups found just like /U does but in allgroups.log instead, during each parse, only if ProgramLogEnabled = true
                 string allgFile = (BaseDirectory + "allgroups.log");
                 
+                //program log file
                 string ProgramLogFile = (BaseDirectory + "m2strm.log");
                 
-                //outputs every strm plus path to this file, use it for showing new stuff
+                //outputs every strm created to this file, used to calculate new items
                 string outputLog = (BaseDirectory + "output.log");
 
                 //this is the filename of the user downloaded m3u8-file
@@ -145,6 +152,9 @@ namespace m2strm
 
                 //string for startline in programlog
                 string programlogStartLine = ("\n" + DateTime.Now + ": " + " *** Log begin, " + FileName + ", " + Version);
+
+                //array of titles that will fill up with titles outputted to disk
+                string[] outputArray = { };
 
                 //Check if args is given
                 if (args.Length > 0)
@@ -364,7 +374,7 @@ namespace m2strm
                         Console.WriteLine("INFO: Edit this file and remove/comment out groups you want to process.\n*** Everything not removed/commented out will be ignored while processing.\n*** (comment out a line by putting // before the group name.)\n*** To make use of it, UnwantedCFGEnabled must be set to True (default).");
                         if (ngexist == true)
                         {
-                            Console.WriteLine("*** Note: We've found titles not in groups, they will be processed in _NOGROUP.");
+                            Console.WriteLine("*** Note: We've found titles not in groups, they will be processed as _NOGROUP.");
                         }
                         return;
                     }
@@ -378,7 +388,7 @@ namespace m2strm
                     else
                     {
                         //if we've come here, the user has given an arg not starting with /
-                        //which we now beleive is a local m3u8-file
+                        //which we now believe is a local m3u8-file
                         m3u8File = args[0];
                         if (File.Exists(m3u8File))
                         {
@@ -409,7 +419,7 @@ namespace m2strm
                         }
                         else
                         {
-                            //we did not find the file found given in arg
+                            //we did not find the file given in arg
                             filenotfound = true;
                         }
                     }
@@ -432,7 +442,6 @@ namespace m2strm
                             outtext = (DateTime.Now + ": " + "INFO: Program logging is disabled in config.");
                             Console.WriteLine(outtext);
                         }
-
                         outtext = (DateTime.Now + ": " + "*** Using config set m3u8-file: " + m3u8File);
                         Console.WriteLine(outtext);
                         if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
@@ -473,10 +482,11 @@ namespace m2strm
                         outtext = (DateTime.Now + ": " + "INFO: Program logging is disabled in config.");
                         Console.WriteLine(outtext);
                     }
-
                     outtext = (DateTime.Now + ": " + "*** Downloading M3U8-file to: " + Userm3u8File);
                     Console.WriteLine(outtext);
                     if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
+                    
+                    //download the m3u8-file
                     webClient.DownloadFile(new Uri(UserURLFull), Userm3u8File);
                     
                     //kept here for pretend download when testing
@@ -512,7 +522,7 @@ namespace m2strm
                     Console.WriteLine(outtext);
                     if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
 
-                    outtext = (DateTime.Now + ": " + "*** Movies, Series, TV subfolder names: " + Movies + ", " + Series + ", " + TV);
+                    outtext = (DateTime.Now + ": " + "*** Movies, Series, TV subfolders: " + Movies + ", " + Series + ", " + TV);
                     Console.WriteLine(outtext);
                     if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
 
@@ -553,7 +563,7 @@ namespace m2strm
                     }
                     
                     //Move outputLog to outputlog.old
-                    if (File.Exists(outputLog))
+                        if (File.Exists(outputLog))
                     {
                         File.Move(outputLog, outputLog + ".old");
                     }
@@ -660,7 +670,7 @@ namespace m2strm
                                 {
                                     if (GROUP == uwgLine)
                                         {
-                                        //Less output lines if GROUPcontains is still same as GROUP
+                                        //Less output lines if GROUPrepeat is still same as GROUP
                                         if (GROUPrepeat != GROUP && ProgramLogEnabled == true)
                                         {
                                             ProgramLog.WriteLine(DateTime.Now + ": " + "Unwanted group: '" + GROUP + "' match in uwgLine: '" + uwgLine + "'");
@@ -680,7 +690,7 @@ namespace m2strm
                                 //Will be set to SKIP if group was found in uwgroups
                                 if (SKIP == false)
                                 {
-                                    //Replace linefeed and carriage return with noting
+                                    //Replace linefeed and carriage return with nothing
                                     URL = (line2.Replace("\r\n", "").Replace("\n", ""));
                                     URL = (line2.Replace("\r", "").Replace("\n", ""));
 
@@ -728,8 +738,10 @@ namespace m2strm
                                     }
                                     if (TYPE == "movie")
                                     {
-                                        //Combine path for movies
+                                        //Combine path for movies -- will probably be removed later and replaced with just MoviesDir as we now do dupe-checking
                                         CombinedDir = Path.Combine(MoviesDir, GROUP);
+                                        //Will soon be new default. Maybe as a choice.
+                                        //CombinedDir = MoviesDir;
 
                                         if (VerboseConsoleOutputEnabled == true)
                                         {
@@ -746,6 +758,7 @@ namespace m2strm
 
                                         //Prepend a tv channel number to NAME
                                         NAME = counter_TV + " " + NAME;
+
                                         if (VerboseConsoleOutputEnabled == true)
                                         {
                                             outtext = (DateTime.Now + ": " + "TV Channel: " + NAME + " found");
@@ -764,9 +777,47 @@ namespace m2strm
                                     //append .strm to the file name
                                     string strmAndPath = (Path.Combine(CombinedDir, NAME) + ".strm");
 
-                                    //Create .strm file if not exist
-                                    if (!File.Exists(strmAndPath))
+                                    //convert NAME to lowercase to get the same result on all OS
+                                    string NAMElower = NAME.ToLower();
+
+                                    //reset DUPE
+                                    bool DUPE = true;
+
+                                    //Compare with outputArray, if already exist in array set DUPE = true
+                                    if (outputArray.Contains(NAMElower))
                                     {
+                                        //counter dupe up
+                                        if (TYPE == "movie")
+                                        {
+                                            counter_MoviesDupe++;
+                                        }
+                                        if (TYPE == "series")
+                                        {
+                                            counter_SeriesDupe++;
+                                        }
+                                        if (TYPE == "tv")
+                                        {
+                                            counter_TVDupe++;
+                                        }
+
+                                        //set DUPE to true
+                                        DUPE = true;
+                                        outtext = (DateTime.Now + ": " + "Dupe found: " + NAME);
+                                        //Console.WriteLine(outtext);
+                                        if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
+                                    }
+                                    else
+                                    {
+                                        DUPE = false;
+                                    }
+
+                                    //add the item to outputArray
+                                    Array.Resize(ref outputArray, outputArray.Length + 1);
+                                    outputArray[outputArray.Length - 1] = NAMElower;
+
+                                    //Create .strm file if not exist on disk and not already in the outputArray
+                                    if (!File.Exists(strmAndPath) && DUPE == false)
+                                    { 
                                         //Check if the filename+path is too long for Windows filesystem
                                         int strmAndPathLength = strmAndPath.Length;
                                         if (strmAndPathLength >= 260)
@@ -784,7 +835,7 @@ namespace m2strm
                                             }
                                         }
 
-										//counter actual up
+                                        //counter actual up
                                         if (TYPE == "movie")
                                         {
                                             counter_MoviesActual++;
@@ -797,23 +848,59 @@ namespace m2strm
                                         {
                                             counter_TVActual++;
                                         }
-										//And finally, here we create the strm-file
+
+                                        //And finally, here we create the strm-file
                                         File.WriteAllText(strmAndPath, URL);
 
                                         //write the same path and filename to output.log
                                         appendText = strmAndPath + NewLine;
                                         File.AppendAllText(outputLog, appendText);
                                     }
-                                    else
+                        
+                                    //if file already exist and is not a dupe
+                                    if (File.Exists(strmAndPath) && DUPE == false)
                                     {
-                                        //we will end up here if the file already exists. this can be due to dupes in the m3u8 or that old files from previous run exist.
-                                            outtext = (DateTime.Now + ": " + "File exists: " + NAME + ".strm");
+                                        //compare old with new content
+                                        string old_strm_content = File.ReadAllText(strmAndPath);
+
+                                        //if old content not same as new then
+                                        if (old_strm_content != URL)
+                                        {
+                                            //counters actual and update up
+                                            if (TYPE == "movie")
+                                            {
+                                                counter_MoviesActual++;
+                                                counter_MoviesUpdate++;
+                                            }
+                                            if (TYPE == "series")
+                                            {
+                                                counter_SeriesActual++;
+                                                counter_SeriesUpdate++;
+                                            }
+                                            if (TYPE == "tv")
+                                            {
+                                                counter_TVActual++;
+                                                counter_TVUpdate++;
+                                            }
+
+                                            //overwrite old outdated content in strm-file
+                                            File.WriteAllText(strmAndPath, URL);
+
+                                            outtext = (DateTime.Now + ": " + "Updated content in: '" + strmAndPath + "'");
+                                            //Console.WriteLine(outtext);
                                             if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
+
+                                            //write the same path and filename to output.log
+                                            appendText = strmAndPath + NewLine;
+                                            File.AppendAllText(outputLog, appendText);
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    continue;
+                                    if (File.Exists(strmAndPath))
+                                    {
+                                        outtext = (DateTime.Now + ": " + "File exists: " + strmAndPath);
+                                        //too much output in log with this enabled
+                                        //if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
+                                    }
                                 }
                             }
                         }
@@ -839,25 +926,39 @@ namespace m2strm
                             File.WriteAllLines(allgFile, allgfullcontents.Distinct().ToArray());
                         }
 
+                        //just a list of all counters
+                        //counter_Movies
+                        //counter_MoviesDupe
+                        //counter_MoviesUpdate
+                        //counter_MoviesActual
+                        //counter_Series
+                        //counter_SeriesDupe
+                        //counter_SeriesUpdate
+                        //counter_SeriesActual
+                        //counter_TV
+                        //counter_TVDupe
+                        //counter_TVUpdate
+                        //counter_TVActual
+
                         //Subtract actual written from found
                         int summovies = counter_Movies - counter_MoviesActual;
                         int sumseries = counter_Series - counter_SeriesActual;
                         int sumtv = counter_TV - counter_TVActual;
 
-                        //Write the findings to console (and log if enabled)
-                        outtext = (DateTime.Now + ": *** " + counter_MoviesActual + " movies written (" + summovies + " skipped)");
+                        //Write the findings to console (and log if enabled) -- this needs tidy up
+                        outtext = (DateTime.Now + ": *** " + counter_MoviesActual + " movies written (" + summovies + " skipped)" + " (" + counter_MoviesDupe + " dupes)" + " (" + counter_MoviesUpdate + " updated)");
                         Console.WriteLine(outtext);
                         if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
 
-                        outtext = (DateTime.Now + ": *** " + counter_SeriesActual + " episodes written (" + sumseries + " skipped)");
+                        outtext = (DateTime.Now + ": *** " + counter_SeriesActual + " episodes written (" + sumseries + " skipped)" + " (" + counter_SeriesDupe + " dupes)" + " (" + counter_SeriesUpdate + " updated)");
                         Console.WriteLine(outtext);
                         if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
 
-                        outtext = (DateTime.Now + ": *** " + counter_TVActual + " tv-channels written (" + sumtv + " skipped)");
+                        outtext = (DateTime.Now + ": *** " + counter_TVActual + " tv-channels written (" + sumtv + " skipped)" + " (" + counter_TVDupe + " dupes)" + " (" + counter_TVUpdate + " updated)");
                         Console.WriteLine(outtext);
                         if (ProgramLogEnabled == true) ProgramLog.WriteLine(outtext);
 
-                        //if there are more items found thatn written, tell user
+                        //if there are more items found than written, tell user
                         if ((counter_Movies > counter_MoviesActual) || (counter_Series > counter_SeriesActual) || (counter_TV > counter_TVActual))
                             {
                             outtext = ("*** NOTE: There are more items found than written. Check logs for more information.");

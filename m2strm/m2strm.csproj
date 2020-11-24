@@ -110,7 +110,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)/Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(OutDir)$(TargetFileName) \\deb1\trix\_test\
-REM copy $(OutDir)$(TargetFileName).config \\deb1\trix\_test\</PostBuildEvent>
+    <PostBuildEvent>copy $(OutDir)$(TargetFileName) \\deb1\trix\m2strm_test\
+</PostBuildEvent>
   </PropertyGroup>
 </Project>

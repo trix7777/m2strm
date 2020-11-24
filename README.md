@@ -4,13 +4,15 @@ Creates STRM-files from M3U8-file.
 Original developer: [TimTester.in](https://timtester.in/)  
   
 New in version 3.0:  
-- Configuration file: You can now use a configuration file for all user settings. Read more about the options for this file later on this page.  
-- Unwanted groups file: this file contains groups you do not want to process. Read more about the options for this file later on this page.  
+- Configuration file: You can now use a configuration file for all user settings.  
+- Unwanted groups file: this file contains groups you do not want to process.  
 - Program log enable/disable.  
 - Download M3U8-file: download your m3u8 directly from your IPTV-provider and then process it in one go.  
 - Fully Mono compatible = runs on Linux with Mono installed - see [here](https://www.mono-project.com/docs/getting-started/install/linux/)  
+- Dupe checking: only output the first of dupes found.
+- Updates content: if URL for an item changed, the strm-file will be updated accordingly.
 - Even more...  still working on it.  
-- TODO: Among other features coming up, next up is updating and purging of old strm-files.  
+- TODO: Among other features coming up, next up is purging of old strm-files.  
   
   
 Tested with IPTV-providers:  
@@ -112,12 +114,14 @@ Windows: Network paths like "\\myserver\somepath" can be used.
 Linux: Use a local or a mounted network location path instead.  
 - Case sensitivity:  
 Windows: NTFS does not normally differentiate between upper or lower case letters in filenames, so when this program encounters two titles, the first one named "This Title" and the second one named "This title", it will se them both as the same title and only create output from the first one it finds in the source file, the second one will be seen as a duplicate.  
-Linux: Will output both titles as separate titles according to case.  
+Linux: ~~Will output both titles as separate titles according to case.~~ Since version 3.0.0.5: This is now resolved with dupe-checking in lowercase (see below under dupes); running on Linux will behave the same way as on Windows. 
 - Illegal printable file characters, names and path length:  
 This program will try its best to make the output more or less the same no matter which platform it is running from. This might however set unnecessary restrictions to Linux filesystems. One example is the file path + filename length which normally in Windows is no more than 260 characters.  
   
 ### Notes about dupes:  
 - So what is a dupe according to the programming?  
 All titles found in the source are "filtered" though a special process, some characters are removed, some are replaced. Also all "tags" (everything in the title name that are within brackets, but the year, are considered to be a tag) are removed from the title. This process can in it self, as a side effect, create dupes. An example would be these two titles: "The Title [PRE] [2020]" and "The Title [2020]", which both through this filter will become the same "The Title (2020)".  
+- Version 3.0.0.5 introduces dupe-checking: Comparing lowercase title with an array of already found lowercase titles, if match; discard. This also resolves the problem with different output depending on OS case-sensitivity.  
+- If there are dupes: Only the first found in the source will be considered, the rest will be discarded.  
   
   
