@@ -11,8 +11,8 @@ New in version 3.0:
 - Fully Mono compatible = runs on Linux with Mono installed - see [here](https://www.mono-project.com/docs/getting-started/install/linux/)  
 - Dupe checking: only output the first of dupes found.
 - Updates content: if URL for an item changed, the strm-file will be updated accordingly.
-- Even more...  still working on it.  
-- TODO: Among other features coming up, next up is purging of old strm-files.  
+- Purging of old strm-files and empty directories.
+- Even more...  still working on it. Please don't hesitate to come forward with ideas or feature requests, under issues.  
   
   
 Tested with IPTV-providers:  
@@ -54,11 +54,12 @@ OutDirectory: Where the processed content should be output to.
 - Default value is "" (which translates to the directory where m2strm.exe is running from).  
 - Example value: "X:\videos\strm\\" or "\\server\videos\strm\\"  
 
-m3u8File: Where your M3U8-file is located.  
-- Default value is ""  
-- Example value: "X:\my.m3u8"  
+m3u8File: Where your M3U8-file is/to be located.  
+- Default value is "" (you need to set this value or use an argument instead).  
+- Example value: "X:\myapp\m2strm\original.m3u8"  
   
-Movies, Series, TV: Sub-directory names for your movies, series and tv content.  
+~~Movies, Series, TV: Sub-directory names for your movies, series and tv content.~~  
+MoviesSubDir, SeriesSubDir, TVSubDir: Sub-directory names for your movies, series and tv content.  
 - Default values are respectively: "VOD Movies", "VOD Series", "TV Channels"  
   
 DeletePreviousDirEnabled  
@@ -74,10 +75,21 @@ VerboseConsoleOutputEnabled
 Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).  
   
 ProgramLogEnabled  
-- Default value is "True" -- will create the program log. Will also create uwgroups.log and allgroups.log (see below).
+- Default value is "True" -- will create the program log (m2strm.log) in a subdirectory /log of the program file. Will also create allgroups.log, dupes.log, new.log, purged.log and uwgroups.log (see below).
 Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).  
-uwgroups.log contains the groups NOT in or commented out in uwgroups.cfg.
-allgroups.log contains all groups found in source just like /U does but outputs to allgroups.log instead, during each parse.
+allgroups.log: contains all groups found in source just like /U does but outputs to allgroups.log instead, during each parse.  
+dupes.log: contains duplicates items found. Read more about dupes below.  
+new.log: contains new items found.  
+purged.log: contains items that was purged (if PurgeFilesEnabled).  
+uwgroups.log: contains the groups NOT in or commented out in uwgroups.cfg.  
+  
+PurgeFilesEnabled
+- Default is "True" -- will purge (delete) files no longer found in the source. If, after purge, found an empty directory, will also be deleted.
+Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).
+
+MovieGroupSubdirEnabled
+- Default is "False" -- will not create a movie group subdir if the movie belongs to a group.
+Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).
   
 DownloadM3U8Enabled  
 - Default value is "False" -- will not try to download a M3U8-file.  
