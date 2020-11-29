@@ -98,7 +98,7 @@ Create configuration with `m2strm.exe /C` and then edit the configuration for yo
 `UserURL`, `UserPort`, `UserName`, `UserPass`: The information you have gotten from your IPTV-provider.
 - Default value for all of them are: "".
 - Needs to be filled in if `DownloadM3U8Enabled` is to be enabled.
-- Look at the link you've got from your IPTV-provider, something like this:
+- Look at the link you've got from your IPTV-provider, something like this:  
 `http://ip.tv:8080/get.php?username=ABCDEFGHIJ&password=0123456789&type=m3u_plus&output=ts`  
 You can get all the information you need from it, look carefully, the above ampersands (&) for instance, are not part of either the username or the password.  
 `UserURL`: `"http://ip.tv"`  
