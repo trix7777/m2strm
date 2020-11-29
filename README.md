@@ -53,7 +53,7 @@ BaseDirectory: Where the process is working and where the config files are.
 OutDirectory: Where the processed content should be output to.  
 - Default value is "" (which translates to the directory where m2strm.exe is running from).  
 - Example value: "X:\videos\strm\\" or "\\server\videos\strm\\"  
-
+  
 m3u8File: Where your M3U8-file is/to be located.  
 - Default value is "" (you need to set this value or use an argument instead).  
 - Example value: "X:\myapp\m2strm\original.m3u8"  
@@ -75,7 +75,7 @@ VerboseConsoleOutputEnabled
 Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).  
   
 ProgramLogEnabled  
-- Default value is "True" -- will create the program log (m2strm.log) in a subdirectory /log of the program file. Will also create allgroups.log, dupes.log, new.log, purged.log and uwgroups.log (see below).
+- Default value is "True" -- will create the program log (m2strm.log) in a subdirectory /log of the program file. Will also create allgroups.log, dupes.log, new.log, purged.log and uwgroups.log (see below).  
 Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).  
 allgroups.log: contains all groups found in source just like /U does but outputs to allgroups.log instead, during each parse.  
 dupes.log: contains duplicates items found. Read more about dupes below.  
@@ -83,13 +83,13 @@ new.log: contains new items found.
 purged.log: contains items that was purged (if PurgeFilesEnabled).  
 uwgroups.log: contains the groups NOT in or commented out in uwgroups.cfg.  
   
-PurgeFilesEnabled
-- Default is "True" -- will purge (delete) files no longer found in the source. If, after purge, found an empty directory, will also be deleted.
-Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).
-
-MovieGroupSubdirEnabled
-- Default is "False" -- will not create a movie group subdir if the movie belongs to a group.
-Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).
+PurgeFilesEnabled  
+- Default is "True" -- will purge (delete) files no longer found in the source. If, after purge, found an empty directory, will also be deleted.  
+Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).  
+  
+MovieGroupSubdirEnabled  
+- Default is "False" -- will not create a movie group subdir if the movie belongs to a group.  
+Accepted values are: "" (same as default above), "True" (Enabled), "False" (Disabled).  
   
 DownloadM3U8Enabled  
 - Default value is "False" -- will not try to download a M3U8-file.  
