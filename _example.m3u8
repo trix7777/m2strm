@@ -1,0 +1,95 @@
+#EXTM3U
+#EXTINF:-1 tvg-ID="" tvg-name="-= Sweden =-" tvg-logo="http://ip.tv/flag-round-250.png" group-title="Sweden",-= Sweden =-
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/8102
+#EXTINF:-1 tvg-ID="svt1.se" tvg-name="SVT1 HD SE" tvg-logo="http://ip.tv/svt1hd.png" group-title="Sweden",SVT1 HD SE
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/24639
+#EXTINF:-1 tvg-ID="svt2.se" tvg-name="SVT2 HD SE" tvg-logo="http://ip.tv/svt2h.png" group-title="Sweden",SVT2 HD SE
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/9654
+#EXTINF:-1 tvg-ID="" tvg-name="-= Denmark =-" tvg-logo="http://ip.tv//data/icons/flags-circle-3d/100/Denmark-128.png" group-title="Denmark",-= Denmark =-
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/9675
+#EXTINF:-1 tvg-ID="dr1.dk" tvg-name="DR 1 FHD DK" tvg-logo="http://image.ibb.co/h2x8pn/DR1HDDK.png" group-title="Denmark",DR 1 FHD DK
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/23504
+#EXTINF:-1 tvg-ID="tv2fri.dk" tvg-name="TV2 Fri DK" tvg-logo="" group-title="Denmark",TV2 Fri DK
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/86904
+#EXTINF:-1 tvg-ID="" tvg-name="-= Norway =-" tvg-logo="http://ip.tv/data/icons/world-flags-1/100/Norway-2-128.png" group-title="Norway",-= Norway =-
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/9674
+#EXTINF:-1 tvg-ID="nrk1.no" tvg-name="NRK 1 HD NO" tvg-logo="http://ip.tv/logopedia/images/3/30/NRK1.svg/revision/latest/scale-to-width-down/250?cb=20111020221613" group-title="Norway",NRK 1 HD NO
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/8146
+#EXTINF:-1 tvg-ID="nrk2.no" tvg-name="NRK 2 HD NO" tvg-logo="http://ip.tv/logopedia/images/3/37/NRK2.svg/revision/latest/scale-to-width-down/250?cb=20111020221614" group-title="Norway",NRK 2 HD NO
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/8164
+#EXTINF:-1 tvg-ID="" tvg-name="-= Finland =-" tvg-logo="http://ip.tv//data/icons/international-flag-serie-3/256/Finland_Flag-128.png" group-title="Finland",-= Finland =-
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/15399
+#EXTINF:-1 tvg-ID="tv1.yle.fi" tvg-name="Yle TV1 FHD FI" tvg-logo="http://ip.tv/logopedia/images/d/d4/YLE_TV1.png/revision/latest/scale-to-width-down/80?cb=20120307135440" group-title="Finland",Yle TV1 FHD FI
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/24675
+#EXTINF:-1 tvg-ID="tv2.yle.fi" tvg-name="Yle TV2 FHD FI" tvg-logo="" group-title="Finland",Yle TV2 FHD FI
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/21234
+#EXTINF:-1 tvg-ID="" tvg-name="-= Music =-" tvg-logo="http://ip.tv/data/icons/social-media-2091/100/social-12-128.png" group-title="*-* Music Package *-*",-= Music =-
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/9678
+#EXTINF:-1 tvg-ID="" tvg-name="Music Choice - Alternative HD" tvg-logo="" group-title="*-* Music Package *-*",Music Choice - Alternative HD
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/15029
+#EXTINF:-1 tvg-ID="" tvg-name="Music Choice - Brits Hits HD" tvg-logo="" group-title="*-* Music Package *-*",Music Choice - Brits Hits HD
+http://ip.tv:8080/ABCDEFGHIJ/0123456789/15047
+#EXTINF:-1 tvg-ID="" tvg-name="Alien 6: Covenant [2017]" tvg-logo="http://ip.tv:8080/images/movies/zecMELPbU5YMQpC81Z8ImaaXuf9.jpg" group-title="VOD: Alien",Alien 6: Covenant [2017]
+http://ip.tv:8080/movie/ABCDEFGHIJ/0123456789/55941.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Alien 5:Prometheus [2012]" tvg-logo="http://ip.tv:8080/images/movies/ng8ALjSDhUmwLl7vtjUWIZNQSlt.jpg" group-title="VOD: Alien",Alien 5:Prometheus [2012]
+http://ip.tv:8080/movie/ABCDEFGHIJ/0123456789/55940.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Alien 4:Resurrection" tvg-logo="http://ip.tv:8080/images/movies/2mavulZivbQa8XZlRA6h3hmesl7.jpg" group-title="VOD: Alien",Alien 4:Resurrection
+http://ip.tv:8080/movie/ABCDEFGHIJ/0123456789/55939.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Alien 3 [1992]" tvg-logo="http://ip.tv:8080/images/movies//p7mUd9GpmCYV5qhkKGmiEerFK3i.jpg" group-title="VOD: Alien",Alien 3 [1992]
+http://ip.tv:8080/movie/ABCDEFGHIJ/0123456789/55938.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Alien 2: Aliens [1986]" tvg-logo="http://ip.tv:8080/images/movies/nORMXEkYEbzkU5WkMWMgRDJwjSZ.jpg" group-title="VOD: Alien",Alien 2: Aliens [1986]
+http://ip.tv:8080/movie/ABCDEFGHIJ/0123456789/55937.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Alien [1979]" tvg-logo="http://ip.tv:8080/images/movies//2h00HrZs89SL3tXB4nbkiM7BKHs.jpg" group-title="VOD: Alien",Alien [1979]
+http://ip.tv:8080/movie/ABCDEFGHIJ/0123456789/55936.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E01" tvg-logo="http://ip.tv:8080/images/1BQhbc8FisCpmjI2pckI6NDBYJs_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E01
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24444.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E02" tvg-logo="http://ip.tv:8080/images/vNdLGKfueO7pDkV8jBllGSIZ6wX_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E02
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24445.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E03" tvg-logo="http://ip.tv:8080/images/4ccOLWFHn2Rxa1Y4lcHXrHJ2u0U_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E03
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24446.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E04" tvg-logo="http://ip.tv:8080/images/lilpdE9txFiFRi9lvnCvYnzVlDb_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E04
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24447.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E05" tvg-logo="http://ip.tv:8080/images/yp9rycaERzoWW6ehwthIJmdnr7R_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E05
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24448.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E06" tvg-logo="http://ip.tv:8080/images/sC5LRD9ZAe19owfCFi1yJNCjIg6_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E06
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24449.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E07" tvg-logo="http://ip.tv:8080/images/kOKd6iQyCnUbVikPh81uFSUckYs_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E07
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24450.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E08" tvg-logo="http://ip.tv:8080/images/iEJOaHgiPdH9WpDBwVD9qGBxVQC_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E08
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24451.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E09" tvg-logo="http://ip.tv:8080/images/xizTRJKoqZBmFz4gZMeOoTPbfpS_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E09
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24452.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E10" tvg-logo="http://ip.tv:8080/images/lkABRD54F9EdDritNbFvdEB2FA3_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E10
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24453.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E11" tvg-logo="http://ip.tv:8080/images/hmt5yek2xS5KWOscu6bY3NStbar_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E11
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24454.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E12" tvg-logo="http://ip.tv:8080/images/hJWjWz29ayxOhfyvc73BNddh5Fg_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E12
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24455.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="Pippi Långstrump S01 E13" tvg-logo="http://ip.tv:8080/images/hAGWhqslX1eC1YGNDVeIkpwpaLw_small.jpg" group-title="Series: Barn",Pippi Långstrump S01 E13
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24456.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E01" tvg-logo="http://ip.tv:8080/images/hDdlA7oxrwaca9KT3QEDnKFOF4p_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E01
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24957.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E02" tvg-logo="http://ip.tv:8080/images/yp5rm4KRE2OPq8T47RqRSQa93p3_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E02
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24958.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E03" tvg-logo="http://ip.tv:8080/images/aJTgGVmP1xtpqagSVDEajEY7a6P_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E03
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24959.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E04" tvg-logo="http://ip.tv:8080/images/sN8DS8yhqA71o2pmEWm6UkxGqvL_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E04
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24960.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E05" tvg-logo="http://ip.tv:8080/images/z4bwLqbAzUrD8LvZabuByMycMy3_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E05
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24961.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E06" tvg-logo="http://ip.tv:8080/images/ghxO1ITS0t51jO3pUttQrGOUFXh_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E06
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24962.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E07" tvg-logo="http://ip.tv:8080/images/9nJUO79tSCYaOkNeKSX0xxUZTn2_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E07
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24963.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E08" tvg-logo="http://ip.tv:8080/images/uGDdZYid7WpoUbOz4jcYGscuHXm_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E08
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24964.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E09" tvg-logo="http://ip.tv:8080/images/AhX34gKcCYnXtvt9taJJo16w0kJ_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E09
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24965.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E10" tvg-logo="http://ip.tv:8080/images/Ujudjdgee5hcK6LHZF9YCsy6jr_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E10
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24966.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E11" tvg-logo="http://ip.tv:8080/images/kghQTqHxHyUGKMx5i7CxyC69Zpm_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E11
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24967.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E12" tvg-logo="http://ip.tv:8080/images/uFqhYGzUZXriXzK0r41Bv3X68fY_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E12
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24968.mkv
+#EXTINF:-1 tvg-ID="" tvg-name="The Epic Tales of Captain Underpants S01 E13" tvg-logo="http://ip.tv:8080/images/qG65T5B4FMKWyxPDcu53clauKeX_small.jpg" group-title="Series: Barn",The Epic Tales of Captain Underpants S01 E13
+http://ip.tv:8080/series/ABCDEFGHIJ/0123456789/24969.mkv
