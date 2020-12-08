@@ -13,21 +13,16 @@ namespace m2strm
     {
         public static void Main(string[] args)
         {
-            //check .Net Framework version
-            var NetFrameworkVersion = new Version(4, 6, 57, 0);
-            EnsureSupportedDotNetFrameworkVersion(NetFrameworkVersion);
-
-            //start stopwatch to time the program run
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
             try
             {
-                //set various stuff
-                string creator = "Original code by TimTester ©2020\nForked with permissions and converted to C# (Mono compatible) by trix77 ©2020";
+                //set various
+                string creator = "Original by TimTester ©2020\nForked with permissions, converted to C# (Mono compatible) and developed by trix77 ©2020";
                 string location = Convert.ToString(Environment.GetCommandLineArgs()[0]);
                 string programFileName = Path.GetFileName(location);
+                string programName = "m2strm";
                 string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
                 string configFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+                string configFileOld = $"{configFile}.old";
                 var userConfigFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
                 var userSettings = userConfigFile.AppSettings.Settings;
  
@@ -99,43 +94,65 @@ namespace m2strm
                 if (ConfigurationManager.AppSettings.Get("UserPass") != null && ConfigurationManager.AppSettings.Get("UserPass") != "")
                     UserPass = ConfigurationManager.AppSettings.Get("UserPass");
 
-                //set up the streamwriter for the programLog
+                //set streamwriter for programLog
                 StreamWriter programLog = null;
 
-                //set up the webclient for downloading the source file
+                //set webclient for source download
                 WebClient webClient = new WebClient();
 
                 //user agent for webclient
-                webClient.Headers.Add("user-agent", "m2strm/" + version);
+                string m2strmVer = $"{programName}/{version}";
+                webClient.Headers.Add("user-agent", m2strmVer);
 
                 //combine output dirs
                 string MoviesDir = Path.Combine(OutDirectory, MoviesSubDir);
                 string SeriesDir = Path.Combine(OutDirectory, SeriesSubDir);
                 string TVDir = Path.Combine(OutDirectory, TVSubDir);
 
-                //date formats for file names
+                //date formats
                 string longDate = (DateTime.Now.ToString("yyyyMMddhhmm"));
                 string shortDate = (DateTime.Now.ToString("yyyyMMdd"));
 
                 //log files locations and names
-                string logSubDir = "log" + Path.DirectorySeparatorChar;
+                string logSubDir = $"log{Path.DirectorySeparatorChar}";
                 string logDir = Path.Combine(BaseDirectory, logSubDir);
-                string allGroupsFile = (logDir + "allgroups.log"); //groups found just like /U, during each parse
-                string uwgLogFile = (logDir + "uwgroups.log");     //groups NOT in or commented out in uwgCfgFile
-                string newLogFile = (logDir + "new_" + longDate + ".log");
-                string programLogFile = (logDir + "m2strm_" + shortDate + ".log");
-                string dupeLogFile = (logDir + "dupes.log");
-                string purgeFile = (logDir + "purged_" + longDate + ".log");
+                string programLogFile = $"{logDir}{programName}_{shortDate}.log";
+                string allGroupsFile = $"{logDir}allgroups.log"; //groups found during each parse
+                string uwgLogFile = $"{logDir}uwgroups.log";     //groups that filters out through uwgCfgFile
+                string newGroupsFile = $"{logDir}newgroups.log"; //groups not found at all in uwgCfgFile
+                string dupeLogFile = $"{logDir}dupes.log";
+                string newLogFile = $"{logDir}new_{longDate}.log";
+                string newLogFileOld = $"{newLogFile}.old";
+                string purgeLogFile = $"{logDir}purged_{longDate}.log";
+
+                //init string arrays
+                string[] allGroupsArray = { };      //all groups found
+                string[] uwgLogArray = { };         //logs unwanted groups
+                string[] newGroupArray = { };       //groups not found at all in uwgCfgFile
+                string[] dupeArray = { };           //dupes found
+                string[] filesOnDiskArray = { };    //files found on disk
+                string[] foundArray = { };          //titles found in source
+                string[] newArray = { };            //new titles this run
+                string[] outArray = { };            //strm-files written to disk
+                string[] purgeArray = { };          //files to purge from disk
+                string[] uwgCfgArray = { };         //unwanted groups config
+                string[] sourceTextLines = { };     //lines from the source file
+
+                //init bool
+                bool fileNotFound = false;         //file is not found
 
                 //other file locations and names
-                string uwgCfgFile = (BaseDirectory + "uwgroups.cfg");
-                string userM3u8File = (BaseDirectory + "original.m3u8");  //this is the filename of the user downloaded m3u8-file
+                string uwgCfgFile = $"{BaseDirectory}uwgroups.cfg";
+                string uwgCfgFileOld = $"{uwgCfgFile}.old";
+                string userM3u8File = $"{BaseDirectory}original.m3u8";  //this will be the filename of the user downloaded m3u8-file
+                string userM3uFileTemp = $"{BaseDirectory}_temp.m3u8";  //temporary m3u8 when downloading
 
                 //misc strings
                 string newLine = ("\n");
                 string getNameAndGroupREGEX = @"^#EXTINF:.* \btvg-name=""([^""]+|)"".* \bgroup-title=""([^""]+|)"",.*$";
-                string programLogStartLine = ("\n" + DateTime.Now + ": " + "*** Log begin, " + programFileName + ", " + version);
-                string UserURLCombined = (UserURL + ":" + UserPort + "/get.php?username=" + UserName + "&password=" + UserPass + "&type=m3u_plus&output=ts");
+                string programLogStartLine = $"{DateTime.Now}: *** Log begin, {programFileName}, {version}";
+                string UserURLCombined = $"{UserURL}:{UserPort}/get.php?username={UserName}&password={UserPass}&type=m3u_plus&output=ts";
+                string strmEXT = ".strm";  //this is the file extension added to output files
 
                 //init strings
                 string GROUP = "";
@@ -143,36 +160,15 @@ namespace m2strm
                 string URL = "";                   //url of the strm
                 string lowerNAME = "";             //NAME converted to lowercase
                 string seriesNAME = "";            //name of the series without sxxexx
-                string contentType = "";           //tv/movie/series
-                string sourceText = "";            //m3u8 source text
+                string NameStrm = "";              //name with strmEXT added
+                string contentType = "";           //tv, movie or series
+                string sourceText = "";            //source text
                 string sourceTextLine1 = "";
                 string sourceTextLine2 = "";
-                string appendText = "";            //used when appending text to files or arrays
                 string outText = "";               //used by console and log output
-                string noRepeat = "";              //less output in some places by not letting name output twice in a row
-                string strmContentOld = "";        //strm-content currently on disk
+                string strmContentOld = "";        //strm-content currently on a disk file
                 string combinedTypeDir = "";       //combines series/movies/tv-dirs with seriesName or GROUP
-                string combinedTypeNameStrm = "";  //combines combinedTypeDir + NAME + .strm
-
-                //init string arrays
-                string[] allGroupsArray = {};      //groups found
-                string[] dupeArray = {};           //dupes found
-                string[] filesOnDiskArray = {};    //files found on disk
-                string[] foundArray = {};          //titles found -- later only purged items left in it
-                string[] newArray = {};            //new titles
-                string[] outArray = {};            //strm-files written to disk
-                string[] purgeArray = {};          //files that will be purged from disk
-                string[] uwgCfgArray = {};         //unwanted groups
-                string[] sourceTextLines = {};     //lines from the source file
-
-                //init bool
-                bool fileNotFound = false;         //file is not found
-                bool ngExist = false;              //there is a title not in a group
-                bool isDupe = false;               //is a dupe
-                bool isUnwanted = false;           //if unwanted
-
-                //init int
-                int combinedTypeNameStrmLength = 0;  //used for checking strm and path length on filesystem
+                string combinedTypeNameStrm = "";  //combines combinedTypeDir, NAME, and strmEXT
 
                 //init counters
                 int cMovies = 0;
@@ -194,82 +190,67 @@ namespace m2strm
                 int cTVPurge = 0;
                 int cTVActual = 0;
 
-                //set counters output strings
-                string newMovies = "0 new";
-                string updateMovies = "";
-                string skipMovies = "";
-                string dupeMovies = "";
-                string purgeMovies = "";
-                string totalMovies = "";
-                string newSeries = "0 new";
-                string updateSeries = "";
-                string skipSeries = "";
-                string dupeSeries = "";
-                string purgeSeries = "";
-                string totalSeries = "";
-                string newTV = "0 new";
-                string updateTV = "";
-                string skipTV = "";
-                string dupeTV = "";
-                string purgeTV = "";
-                string totalTV = "";
-
                 //check if args is given
                 if (args.Length > 0)
                 {
                     if (args[0] == "/?" || args[0] == "-?" || args[0].ToLower() == "/h" || args[0].ToLower() == "-h" || args[0].ToLower() == "/help" || args[0].ToLower() == "-help" || args[0].ToLower() == "--help")
                     {
                         //help section
-                        Console.WriteLine("Creates STRM-files from M3U8-file.");
-                        Console.WriteLine("\n" + programFileName + " [OPTIONS] [drive:][path][filename]");
-                        Console.WriteLine("\n  filename        Specifies the M3U8-file to be processed. If not specified tries to get from configuration file.");
-                        Console.WriteLine("\n  /C              Create default configuration file. Warning: resets existing settings.");
-                        Console.WriteLine("  /U [filename]   Create 'unwanted groups' file with a list of all groups.");
-                        Console.WriteLine("  /D              Delete previously created directories only (no parsing).");
-                        Console.WriteLine("  /M              Download M3U8-file only (no parsing).");
+                        Console.WriteLine("Creates STRM-files from M3U8-file.\n");
+                        Console.WriteLine($"{programFileName} [OPTIONS] [drive:][path][filename]\n");
+                        Console.WriteLine("  filename        The source M3U8-file to be processed.\n");
+                        Console.WriteLine("  /C              Create default configuration file. Warning: resets existing settings.");
+                        Console.WriteLine("  /U [filename]   Create the unwanted groups file with a list of all groups from filename.");
+                        Console.WriteLine("  /D              Delete previously created directories and then quit.");
+                        Console.WriteLine("  /M              Download M3U8-file and then quit. Uses config set information.");
                         Console.WriteLine("  /G              Show a guide to help you get started quickly.");
                         Console.WriteLine("  /V              Version information.");
-                        Console.WriteLine("  /? or /H        This help.");
+                        Console.WriteLine("  /? or /H        This help.\n");
                         if (File.Exists(configFile))
-                            Console.WriteLine("\nConfiguration file: " + configFile);
+                            Console.WriteLine($"Configuration file found: {configFile}");
                         if (!File.Exists(configFile))
                         {
-                            Console.WriteLine("\nConfiguration file not found.");
-                            Console.WriteLine("Tip: Create configuration with /C and then edit it for your needs.");
+                            Console.WriteLine("Configuration file not found.");
                         }
                         if (File.Exists(uwgCfgFile))
-                            Console.WriteLine("\nUnwanted groups file: " + uwgCfgFile);
+                            Console.WriteLine($"Unwanted groups file found: {uwgCfgFile}");
                         if (!File.Exists(uwgCfgFile))
                         {
-                            Console.WriteLine("\nUnwanted groups file not found.");
-                            Console.WriteLine("Tip: Create the unwanted groups file with /U and then edit it for your needs.");
+                            Console.WriteLine("Unwanted groups file not found.");
                         }
                         Console.WriteLine("\nExample usage:");
-                        Console.WriteLine(programFileName + " my.m3u8");
+                        Console.WriteLine($"{programFileName} original.m3u8");
                         return;
                     }
 
                     else if (args[0].ToLower() == "/m")
                     {
-                        Console.WriteLine("*** Downloading M3U8-file to: " + userM3u8File);
-                        webClient.DownloadFile(new Uri(UserURLCombined), userM3u8File);
+                        Console.WriteLine($"*** Downloading M3U8-file to: {userM3u8File}");
+                        webClient.DownloadFile(new Uri(UserURLCombined), userM3uFileTemp);
+                        if (File.Exists(userM3u8File))
+                            File.Delete(userM3u8File);
+                        File.Move(userM3uFileTemp, userM3u8File);
                         return;
                     }
 
                     else if (args[0].ToLower() == "/v")
                     {
                         Console.WriteLine(creator);
-                        Console.WriteLine(programFileName + " version " + version);
+                        Console.WriteLine($"{programFileName} version {version}");
                         return;
                     }
 
                     else if (args[0].ToLower() == "/c")
                     {
-                        //backup old configFile if exist and then exit returning error
+                        //backup old configFile if exist
                         if (File.Exists(configFile))
                         {
-                            File.Move(configFile, configFile + ".old");
-                            Console.WriteLine("*** WARNING: Configuration file existed and has been moved to: " + configFile + ".old" + "\nTo fully reset the configuration you need to run /C again.");
+                            if (File.Exists(configFileOld))
+                                File.Delete(configFileOld);
+                            File.Move(configFile, configFileOld);
+                            Console.WriteLine($"*** WARNING: Configuration file existed and has been moved to: {configFileOld}.");
+                            //starts another process in background that loads default values before writing new config
+                            Process.Start(Environment.GetCommandLineArgs()[0], Environment.GetCommandLineArgs().Length > 1 ? string.Join(" ", Environment.GetCommandLineArgs().Skip(1)) : null);
                             return;
                         }
 
@@ -311,22 +292,22 @@ namespace m2strm
                         userSettings["UserName"].Value = UserName;
                         userSettings["UserPass"].Value = UserPass;
                         userConfigFile.Save(ConfigurationSaveMode.Modified);
-                        Console.WriteLine("*** Configuration file created: " + configFile);
+                        Console.WriteLine($"*** Configuration file created: {configFile}");
                         return;
                     }
 
                     else if (args[0].ToLower() == "/g")
                     {
                         Console.WriteLine("\nQuick guide:\n");
-                        Console.WriteLine("1. Create the configuration file: " + programFileName + " /C");
+                        Console.WriteLine($"1. Create the configuration file: {programFileName} /C");
                         Console.WriteLine("2. Edit the configuration file and set at least the following:");
-                        Console.WriteLine("-- m3u8File value: /where/you/want/to/download/original.m3u8");
-                        Console.WriteLine("-- DownloadM3U8Enabled value: True");
-                        Console.WriteLine("-- Also fill in your UserURL, UserPort, UserName and UserPass.");
-                        Console.WriteLine("3. Download your m3u8-file using the configuration file settings: " + programFileName + " /M");
-                        Console.WriteLine("4. Create the unwanted groups file: " + programFileName + " /U");
+                        Console.WriteLine(" - m3u8File value: /where/you/want/to/download/original.m3u8");
+                        Console.WriteLine(" - DownloadM3U8Enabled value: True");
+                        Console.WriteLine(" - Also fill in your UserURL, UserPort, UserName and UserPass.");
+                        Console.WriteLine($"3. Download your M3U8-file using the configuration file settings: {programFileName} /M");
+                        Console.WriteLine($"4. Create the unwanted groups file: {programFileName} /U");
                         Console.WriteLine("5. Edit the unwanted groups file and comment out the groups you want to keep with //.");
-                        Console.WriteLine("6. You're all done. You can from now on just run " + programFileName + " without any arguments.\n");
+                        Console.WriteLine($"6. You're all done. From now on you can run {programFileName} without any arguments and the program will be using your configuration.\n");
                         return;
                     }
 
@@ -352,13 +333,13 @@ namespace m2strm
                             if (File.Exists(m3u8File))
                             {
                                 if (ConfigurationManager.AppSettings.Get("m3u8File") != null && ConfigurationManager.AppSettings.Get("m3u8File") != "")
-                                    Console.WriteLine("*** Using arg specified m3u8-file: " + m3u8File + " (overriding config).");
-                                else Console.WriteLine("*** Using arg specified m3u8-file: " + m3u8File + " (not set in config).");
+                                    Console.WriteLine($"*** Using arg specified M3U8-file: {m3u8File} (overriding config).");
+                                else Console.WriteLine($"*** Using arg specified M3U8-file: {m3u8File} (not set in config).");
                             }
                             else
                             {
                                 fileNotFound = true;
-                                Console.WriteLine("File not found - " + m3u8File);
+                                Console.WriteLine($"File not found - {m3u8File}");
                                 return;
                             }
                         }
@@ -367,31 +348,37 @@ namespace m2strm
                             if (ConfigurationManager.AppSettings.Get("m3u8File") != null && ConfigurationManager.AppSettings.Get("m3u8File") != "")
                                 m3u8File = ConfigurationManager.AppSettings.Get("m3u8File");
                             if (File.Exists(m3u8File))
-                                Console.WriteLine("*** Using config set m3u8-file: " + m3u8File);
+                                Console.WriteLine($"*** Using config set M3U8-file: {m3u8File}");
                             else
                             {
                                 fileNotFound = true;
-                                Console.WriteLine("File not found - " + m3u8File);
+                                Console.WriteLine($"File not found - {m3u8File}");
                                 return;
                             }
                         }
 
+                        //used for warning message later
+                        bool uwgCfgExisted = false;
+
                         //backup old uwgCfgFile
                         if (File.Exists(uwgCfgFile))
                         {
-                            File.Copy(uwgCfgFile, uwgCfgFile + ".old", true);
-                            Console.WriteLine("*** WARNING: Unwanted groups file already existed, it has now been moved to: " + uwgCfgFile + ".old" );
+                            if (File.Exists(uwgCfgFileOld))
+                                File.Delete(uwgCfgFileOld);
+                            File.Copy(uwgCfgFile, uwgCfgFileOld, true);
+                            uwgCfgExisted = true;
                         }
-
+                                                
                         //set the content of the m3u8File to sourceText
                         sourceText = File.ReadAllText(m3u8File);
 
                         //normalize linefeed
-                        sourceText = sourceText.Replace("\r\n", "\n");
-                        sourceText = sourceText.Replace("\r", "\n");
+                        sourceText = sourceText
+                            .Replace("\r\n", "\n")
+                            .Replace("\r", "\n");
 
-                        //ngExist, used for setting the _NOGROUP
-                        ngExist = false;
+                        //there is a title not in a group, used for setting the _NOGROUP
+                        bool ngExist = false;
 
                         //empty old contents of uwgCfgFile
                         File.WriteAllText(uwgCfgFile, string.Empty);
@@ -411,12 +398,6 @@ namespace m2strm
                                 Match match = Regex.Match(sourceTextLine1, getNameAndGroupREGEX, RegexOptions.IgnoreCase);
                                 GROUP = match.Groups[2].Value;
 
-                                //set the contents of uwgCfgFile
-                                uwgCfgArray = File.ReadAllLines(uwgCfgFile);
-
-                                //reset appendText
-                                appendText = "";
-
                                 //check if noname group
                                 if (GROUP == "")
                                 {
@@ -427,25 +408,27 @@ namespace m2strm
                                 //less output by not letting same output twice
                                 if (uwgCfgArray.Contains(GROUP) == false)
                                 {
-                                    Console.WriteLine("Found group: " + GROUP);
-                                    //Combine GROUP + newLine
-                                    appendText = GROUP + newLine;
-                                    //and output them to file
-                                    File.AppendAllText(uwgCfgFile, appendText);
+                                    Console.WriteLine($"Found group: {GROUP}");
+                                    //add the group to the array
+                                    Array.Resize(ref uwgCfgArray, uwgCfgArray.Length + 1);
+                                    uwgCfgArray[uwgCfgArray.Length - 1] = GROUP;
                                 }
                             }
                         }
 
-                        //remove blanks, doubles and sorts the groups found
-                        uwgCfgArray = File.ReadAllLines(uwgCfgFile);
+                        //tidy up in the uwgCfgArray and write to uwgCfgFile
                         //remove blank lines
-                        uwgCfgArray = uwgCfgArray.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                        //uwgCfgArray = uwgCfgArray.Where(x => !string.IsNullOrEmpty(x)).ToArray();
                         //sort the lines alphabetically ascending
                         Array.Sort(uwgCfgArray);
                         //remove duplicates
-                        File.WriteAllLines(uwgCfgFile, uwgCfgArray.Distinct().ToArray());
-                        Console.WriteLine("\n*** Unwanted groups file created: " + uwgCfgFile);
-                        Console.WriteLine("INFO: Edit this file and remove/comment out groups you want to process.\n*** Everything not removed/commented out will be ignored while processing.\n*** (comment out a line by putting // before the group name.)\n*** To make use of it, UnwantedCFGEnabled must be set to True (default).");
+                        //File.WriteAllLines(uwgCfgFile, uwgCfgArray.Distinct().ToArray());
+                        File.WriteAllLines(uwgCfgFile, uwgCfgArray);
+                        if (uwgCfgExisted == true)
+                            Console.WriteLine($"\n*** WARNING: Unwanted groups file existed and has been moved to: {uwgCfgFileOld}");
+                        else
+                            Console.WriteLine("");
+                        Console.WriteLine($"*** Unwanted groups file created: {uwgCfgFile}");
                         if (ngExist == true)
                             Console.WriteLine("*** Note: We've found titles not in groups, they will be processed as _NOGROUP.");
                         return;
@@ -453,7 +436,7 @@ namespace m2strm
 
                     else if (args[0].StartsWith("/"))
                     {
-                        Console.WriteLine("Invalid switch - " + args[0]);
+                        Console.WriteLine($"Invalid switch - {args[0]}");
                         Console.WriteLine("Type /? for help");
                         return;
                     }
@@ -467,7 +450,7 @@ namespace m2strm
                             //start logging (1/3)
                             if (ProgramLogEnabled == true)
                             {
-                                //Create directory if not exist
+                                //Create log directory if not exist
                                 if (!Directory.Exists(logDir))
                                     Directory.CreateDirectory(logDir);
                                 programLog = File.AppendText(programLogFile);
@@ -475,19 +458,19 @@ namespace m2strm
                             }
                             else
                             {
-                                outText = (DateTime.Now + ": " + "INFO: Program logging is disabled in config.");
+                                outText = $"{DateTime.Now}: INFO: Program logging is disabled in config.";
                                 Console.WriteLine(outText);
                             }
 
                             if (ConfigurationManager.AppSettings.Get("m3u8File") != null && ConfigurationManager.AppSettings.Get("m3u8File") != "")
                             {
-                                outText = (DateTime.Now + ": " + "*** Using arg specified m3u8-file: " + m3u8File + " (overriding config).");
+                                outText = $"{DateTime.Now}: *** Using arg specified M3U8-file: {m3u8File} (overriding config).";
                                 Console.WriteLine(outText);
                                 if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                             }
                             else
                             {
-                                outText = (DateTime.Now + ": " + "Using arg specified m3u8-file: " + m3u8File + " (not set in config).");
+                                outText = $"{DateTime.Now}: Using arg specified M3U8-file: {m3u8File} (not set in config).";
                                 Console.WriteLine(outText);
                                 if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                             }
@@ -508,7 +491,7 @@ namespace m2strm
                         //start logging (2/3)
                         if (ProgramLogEnabled == true)
                         {
-                            //create directory if not exist
+                            //create log directory if not exist
                             if (!Directory.Exists(logDir))
                                 Directory.CreateDirectory(logDir);
                             programLog = File.AppendText(programLogFile);
@@ -516,10 +499,10 @@ namespace m2strm
                         }
                         else
                         {
-                            outText = (DateTime.Now + ": " + "INFO: Program logging is disabled in config.");
+                            outText = $"{DateTime.Now}: INFO: Program logging is disabled in config.";
                             Console.WriteLine(outText);
                         }
-                        outText = (DateTime.Now + ": " + "*** Using config set m3u8-file: " + m3u8File);
+                        outText = $"{DateTime.Now}: *** Using config set M3U8-file: {m3u8File}";
                         Console.WriteLine(outText);
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                     }
@@ -531,12 +514,10 @@ namespace m2strm
                     }
                 }
 
-                //output to log and console
-                //Console.WriteLine(DateTime.Now + ": " + "Stuff here");
-                //if (ProgramLogEnabled == true) programLog.WriteLine(DateTime.Now + ": " + "Stuff here");
-
-                //pause
-                //Console.WriteLine("I am here:");
+                //output to log and console, pause
+                //outText = $"{DateTime.Now}: Stuff here {stringhere}";
+                //Console.WriteLine(outText);
+                //if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                 //Console.ReadKey();
 
                 //check if user wants to download m3u8 before parsing
@@ -545,7 +526,7 @@ namespace m2strm
                     //start logging (3/3)
                     if (ProgramLogEnabled == true)
                     {
-                        //create directory if not exist
+                        //create log directory if not exist
                         if (!Directory.Exists(logDir))
                             Directory.CreateDirectory(logDir);
                         programLog = File.AppendText(programLogFile);
@@ -553,29 +534,28 @@ namespace m2strm
                     }
                     else
                     {
-                        outText = (DateTime.Now + ": " + "INFO: Program logging is disabled in config.");
+                        outText = $"{DateTime.Now}: INFO: Program logging is disabled in config.";
                         Console.WriteLine(outText);
                     }
-                    outText = (DateTime.Now + ": " + "*** Downloading M3U8-file to: " + userM3u8File);
+                    outText = $"{DateTime.Now}: *** Downloading M3U8-file to: {userM3u8File}";
                     Console.WriteLine(outText);
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
-                    
+
                     //download the m3u8-file
-                    webClient.DownloadFile(new Uri(UserURLCombined), userM3u8File);
-                    //Console.WriteLine(UserURLCombined);
+                    webClient.DownloadFile(new Uri(UserURLCombined), userM3uFileTemp);
+                    if (File.Exists(userM3u8File))
+                        File.Delete(userM3u8File);
+                    File.Move(userM3uFileTemp, userM3u8File);
 
                     if (m3u8File != null || m3u8File != "")
                     {
-                        outText = (DateTime.Now + ": " + "*** Using downloaded m3u8-file: " + userM3u8File + " (overriding both config and args).");
-                        Console.WriteLine(outText);
-                        if (ProgramLogEnabled == true) programLog.WriteLine(outText);
-                        outText = (DateTime.Now + ": " + "INFO: To disable this override, DownloadM3U8Enabled must be set to False (default).");
+                        outText = $"{DateTime.Now}: *** Using downloaded M3U8-file: {userM3u8File} (overrides config/args).";
                         Console.WriteLine(outText);
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                     }
                     else
                     {
-                        outText = (DateTime.Now + ": " + "*** Using downloaded m3u8-file: " + userM3u8File);
+                        outText = $"{DateTime.Now}: *** Using downloaded M3U8-file: {userM3u8File}";
                         Console.WriteLine(outText);
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                     }
@@ -583,25 +563,36 @@ namespace m2strm
                     m3u8File = userM3u8File;
                 }
 
+                //start stopwatch, this late because we are not interested in how long it might take to download m3u8
+                var stopWatch = Stopwatch.StartNew();
+
                 //if m3u8File exist continue, or set fileNotFound true
                 if (File.Exists(m3u8File))
                 {
-                    outText = (DateTime.Now + ": " + "*** BaseDirectory: " + BaseDirectory);
+                    outText = $"{DateTime.Now}: *** BaseDirectory: {BaseDirectory}";
                     Console.WriteLine(outText);
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
-                    outText = (DateTime.Now + ": " + "*** OutDirectory: " + OutDirectory);
+                    outText = $"{DateTime.Now}: *** OutDirectory: {OutDirectory}";
                     Console.WriteLine(outText);
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
-                    outText = (DateTime.Now + ": " + "*** Type subfolders: " + MoviesSubDir + ", " + SeriesSubDir + ", " + TVSubDir);
+                    outText = $"{DateTime.Now}: *** Movie subfolder: {MoviesSubDir}";
+                    Console.WriteLine(outText);
+                    if (ProgramLogEnabled == true) programLog.WriteLine(outText);
+
+                    outText = $"{DateTime.Now}: *** Series subfolder: {SeriesSubDir}";
+                    Console.WriteLine(outText);
+                    if (ProgramLogEnabled == true) programLog.WriteLine(outText);
+
+                    outText = $"{DateTime.Now}: *** TV subfolder: {TVSubDir}";
                     Console.WriteLine(outText);
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
                     //check if config exists
                     if (File.Exists(configFile))
                     {
-                        outText = (DateTime.Now + ": " + "*** Config file found and in use: " + configFile);
+                        outText = $"{DateTime.Now}: *** Configuration file in use: {configFile}";
                         Console.WriteLine(outText);
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                     }
@@ -609,17 +600,16 @@ namespace m2strm
                     //set uwgCfgFile if wanted and exists
                     if (File.Exists(uwgCfgFile) && UnwantedCFGEnabled == true)
                     {
-                        outText = (DateTime.Now + ": " + "*** Unwanted groups file found and in use: " + uwgCfgFile);
+                        outText = $"{DateTime.Now}: *** Unwanted groups file in use: {uwgCfgFile}";
                         Console.WriteLine(outText);
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                         uwgCfgArray = File.ReadAllLines(uwgCfgFile);
                     }
-                    else if (File.Exists(uwgCfgFile) && UnwantedCFGEnabled == false)
+                    else if (UnwantedCFGEnabled == false)
                     {
-                        outText = (DateTime.Now + ": " + "*** Unwanted groups file found but not in use: " + uwgCfgFile);
+                        outText = $"{DateTime.Now}: *** Unwanted groups file not in use.";
                         Console.WriteLine(outText);
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
-                        uwgCfgArray = File.ReadAllLines(uwgCfgFile);
                     }
 
                     //empty old contents of uwgLogFile
@@ -631,14 +621,21 @@ namespace m2strm
                     //empty old contents of dupeLogFile
                     if (ProgramLogEnabled == true) File.WriteAllText(dupeLogFile, string.Empty);
 
+                    //empty old contents of newGroupsFile
+                    if (ProgramLogEnabled == true) File.WriteAllText(newGroupsFile, string.Empty);
+
                     //in the odd instance newLogFile would exist with the same name from previous run, add .old to the old one
                     if (File.Exists(newLogFile))
-                        File.Move(newLogFile, newLogFile + ".old");
-                    
+                    {
+                        if (File.Exists(newLogFileOld))
+                            File.Delete(newLogFileOld);
+                        File.Move(newLogFile, newLogFileOld);
+                    }
+
                     //delete previously created directories
                     if (DeletePreviousDirEnabled == true)
                     {
-                        outText = (DateTime.Now + ": " + "*** Deleting all previously created directories (set in config).");
+                        outText = $"{DateTime.Now}: *** Deleting previously created directories (set in config).";
                         Console.WriteLine(outText);
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
@@ -652,15 +649,21 @@ namespace m2strm
                     }
                     else
                     {
-                        //this is the default
-                        outText = (DateTime.Now + ": " + "*** Not deleting all previously created directories.");
-                        //Console.WriteLine(outText);
+                        outText = $"{DateTime.Now}: *** Not deleting previously created directories.";
+                        if (ProgramLogEnabled == true) programLog.WriteLine(outText);
+                    }
+
+                    //tell user we are using movie-group subfolders if set
+                    if (MovieGroupSubdirEnabled == true)
+                    {
+                        outText = $"{DateTime.Now}: *** Creating movie-group subfolders (set in config).";
+                        Console.WriteLine(outText);
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                     }
 
                     //################################### parse start ###################################
                     //now we finally start to parse the m3u8-file
-                    outText = (DateTime.Now + ": " + "*** Processing " + m3u8File);
+                        outText = $"{DateTime.Now}: *** Processing {m3u8File}";
                     Console.WriteLine(outText);
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
@@ -668,8 +671,9 @@ namespace m2strm
                     sourceText = File.ReadAllText(m3u8File);
 
                     //normalize linefeed
-                    sourceText = sourceText.Replace("\r\n", "\n");
-                    sourceText = sourceText.Replace("\r", "\n");
+                    sourceText = sourceText
+                        .Replace("\r\n", "\n")
+                        .Replace("\r", "\n");
 
                     //split each line into array
                     sourceTextLines = sourceText.Split(newLine.ToCharArray());
@@ -686,8 +690,7 @@ namespace m2strm
                             NAME = "";
                             GROUP = "";
                             URL = "";
-                            isUnwanted = false;
-                            appendText = "";
+                            bool isUnwanted = false;           //is unwanted
 
                             //get NAME and GROUP using regex pattern and capture groups
                             Match match = Regex.Match(sourceTextLine1, getNameAndGroupREGEX, RegexOptions.IgnoreCase);
@@ -702,45 +705,40 @@ namespace m2strm
 
                             if (ProgramLogEnabled == true)
                             {
-                                //set the contents of allGroupsFile
-                                allGroupsArray = File.ReadAllLines(allGroupsFile);
-
-                                //less output by not letting same output twice
                                 if (allGroupsArray.Contains(GROUP) == false)
                                 {
-                                    //append GROUP + newLine
-                                    appendText = GROUP + newLine;
-                                    File.AppendAllText(allGroupsFile, appendText);
+                                    //add to array
+                                    Array.Resize(ref allGroupsArray, allGroupsArray.Length + 1);
+                                    allGroupsArray[allGroupsArray.Length - 1] = GROUP;
                                 }
                             }
 
                             foreach (string uwgCfgLine in uwgCfgArray)
                             {
                                 if (GROUP == uwgCfgLine)
+                                {
+                                    if (uwgLogArray.Contains(GROUP) == false && ProgramLogEnabled == true)
                                     {
-                                    //less output lines if noRepeat is still same as GROUP
-                                    if (noRepeat != GROUP && ProgramLogEnabled == true)
-                                    {
-                                        programLog.WriteLine(DateTime.Now + ": " + "Unwanted group: '" + GROUP + "' match in uwgCfgLine: '" + uwgCfgLine + "'");
-                                        //append newLine
-                                        appendText = GROUP + newLine;
-                                        //add to uwgLogFile
-                                        File.AppendAllText(uwgLogFile, appendText);
+                                        outText = $"{DateTime.Now}: Unwanted group: '{GROUP}' match in: '{uwgCfgLine}'";
+                                        programLog.WriteLine(outText);
+                                        //add to array
+                                        Array.Resize(ref uwgLogArray, uwgLogArray.Length + 1);
+                                        uwgLogArray[uwgLogArray.Length - 1] = GROUP;
                                     }
                                     //set isUnwanted to true
                                     isUnwanted = true;
-                                    //used to get less repeats in console/log output
-                                    noRepeat = GROUP;
                                 }
                                 continue;
                             }
 
-                            //will be set to isUnwanted if group was found in uwgroups
                             if (isUnwanted == false)
                             {
                                 //replace linefeed and carriage return with nothing
-                                URL = (sourceTextLine2.Replace("\r\n", "").Replace("\n", ""));
-                                URL = (sourceTextLine2.Replace("\r", "").Replace("\n", ""));
+                                URL = sourceTextLine2
+                                    .Replace("\r\n", "")
+                                    .Replace("\n", "")
+                                    .Replace("\r", "")
+                                    .Replace("\n", "");
 
                                 //run NAME and GROUP through special char filters
                                 NAME = NAMEFilterFileNameChars(NAME);
@@ -766,7 +764,7 @@ namespace m2strm
 
                                     if (VerboseConsoleOutputEnabled == true)
                                     {
-                                        outText = (DateTime.Now + ": " + "TV Show episode: " + NAME + " found");
+                                        outText = $"{DateTime.Now}: TV Show episode: {NAME} found";
                                         Console.WriteLine(outText);
                                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                                     }
@@ -782,7 +780,7 @@ namespace m2strm
 
                                     if (VerboseConsoleOutputEnabled == true)
                                     {
-                                        outText = (DateTime.Now + ": " + "Movie: " + NAME + " found");
+                                        outText = $"{DateTime.Now}: Movie: {NAME} found";
                                         Console.WriteLine(outText);
                                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                                     }
@@ -794,11 +792,11 @@ namespace m2strm
                                     combinedTypeDir = Path.Combine(TVDir, GROUP);
 
                                     //prepend a tv channel number to NAME
-                                    NAME = cTV + " " + NAME;
+                                    NAME = $"{cTV} {NAME}";
 
                                     if (VerboseConsoleOutputEnabled == true)
                                     {
-                                        outText = (DateTime.Now + ": " + "TV Channel: " + NAME + " found");
+                                        outText = $"{DateTime.Now}: TV Channel: {NAME} found";
                                         Console.WriteLine(outText);
                                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                                     }
@@ -809,11 +807,17 @@ namespace m2strm
                                 if (!Directory.Exists(combinedTypeDir))
                                     Directory.CreateDirectory(combinedTypeDir);
 
-                                //append .strm to the file name
-                                combinedTypeNameStrm = (Path.Combine(combinedTypeDir, NAME) + ".strm");
+                                //append strmEXT to the file name
+                                NameStrm = $"{NAME}{strmEXT}";
+
+                                //and combine the path with it
+                                combinedTypeNameStrm = Path.Combine(combinedTypeDir, NameStrm);
 
                                 //convert NAME to lowercase to get the same result on all OS
                                 lowerNAME = NAME.ToLower();
+
+                                //is a dupe
+                                bool isDupe = false;
 
                                 //compare with outArray, if already exist in array set isDupe = true
                                 if (outArray.Contains(lowerNAME))
@@ -830,17 +834,15 @@ namespace m2strm
                                     isDupe = true;
                                     if (ProgramLogEnabled == true)
                                     {
-                                        appendText = NAME + newLine;
-                                        outText = (DateTime.Now + ": " + "Dupe found: " + NAME);
+                                        outText = $"{DateTime.Now}: Dupe found: {NAME}";
                                         programLog.WriteLine(outText);
-                                        //add to dupeLogFile
-                                        File.AppendAllText(dupeLogFile, appendText);
+                                        //add to dupeArray
+                                        Array.Resize(ref dupeArray, dupeArray.Length + 1);
+                                        dupeArray[dupeArray.Length - 1] = NAME;
                                     }
                                 }
-                                else
-                                    isDupe = false;
 
-                                //add the item to outArray
+                                //add the to outArray
                                 Array.Resize(ref outArray, outArray.Length + 1);
                                 outArray[outArray.Length - 1] = lowerNAME;
 
@@ -851,14 +853,14 @@ namespace m2strm
                                     foundArray[foundArray.Length - 1] = (combinedTypeNameStrm);
                                 }
 
-                                //create .strm file if not exist on disk and not already in the outArray (dupe)
+                                //create output file if not exist on disk and not already in the outArray (dupe)
                                 if (!File.Exists(combinedTypeNameStrm) && isDupe == false)
                                 {
-                                    //check if the filename+path is too long for Windows filesystem
-                                    combinedTypeNameStrmLength = combinedTypeNameStrm.Length;
+                                    //check if the filename plus path is too long for Windows filesystem
+                                    int combinedTypeNameStrmLength = combinedTypeNameStrm.Length;
                                     if (combinedTypeNameStrmLength >= 260)
                                     {
-                                        outText = ("WARNING: Destination path too long\nThe file name could be too long (" + combinedTypeNameStrmLength + " chars) for the destination directory.\n'" + combinedTypeNameStrm + "'");
+                                        outText = $"WARNING: Destination path too long\nThe file name could be too long ({combinedTypeNameStrmLength} chars) for the destination directory.\n'{combinedTypeNameStrm}'";
                                         Console.WriteLine(outText);
                                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                                     }
@@ -871,12 +873,15 @@ namespace m2strm
                                     if (contentType == "tv")
                                         cTVActual++;
 
-                                    //and finally, here we create the strm-file
+                                    //and finally, here we create the output file
                                     File.WriteAllText(combinedTypeNameStrm, URL);
 
-                                    //write the same path and filename to new.log
-                                    appendText = combinedTypeNameStrm + newLine;
-                                    File.AppendAllText(newLogFile, appendText);
+                                    //write the same path and filename to newArray if ProgramLogEnabled true
+                                    if (ProgramLogEnabled == true)
+                                    {
+                                        Array.Resize(ref newArray, newArray.Length + 1);
+                                        newArray[newArray.Length - 1] = combinedTypeNameStrm;
+                                    }
                                 }
 
                                 //if file exist and is not a dupe; check if new content, if so; update file with new content
@@ -896,22 +901,25 @@ namespace m2strm
                                         if (contentType == "tv")
                                             cTVUpdate++;
 
-                                        //overwrite old outdated content in strm-file
+                                        //overwrite old outdated content in output file
                                         File.WriteAllText(combinedTypeNameStrm, URL);
 
-                                        outText = (DateTime.Now + ": " + "Updated content in: '" + combinedTypeNameStrm + "'");
+                                        outText = $"{DateTime.Now}: Updated content in: '{combinedTypeNameStrm}'";
                                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                                         {
-                                            //write the same path and filename to newLogFile
-                                            appendText = combinedTypeNameStrm + newLine;
-                                            File.AppendAllText(newLogFile, appendText);
+                                            //add the same path and filename to newArray
+                                            Array.Resize(ref newArray, newArray.Length + 1);
+                                            newArray[newArray.Length - 1] = combinedTypeNameStrm;
                                         }
                                     }
                                     else
                                     {
-                                        if (ProgramLogEnabled == true)
+                                        //enable/disable logFileExists
+                                        bool logFileExists = false;
+
+                                        if (ProgramLogEnabled == true && logFileExists == true)
                                         {
-                                            outText = (DateTime.Now + ": " + "File exists: " + combinedTypeNameStrm);
+                                            outText = $"{DateTime.Now}: File exists: {combinedTypeNameStrm}";
                                             programLog.WriteLine(outText);
                                         }
                                     }
@@ -920,106 +928,131 @@ namespace m2strm
                         }
                     }
 
-                    //tidy up in the newLogFile if exist
-                    if (File.Exists(newLogFile))
-                    {
-                        newArray = File.ReadAllLines(newLogFile);
-                        //sort the lines alphabetically ascending
-                        Array.Sort(newArray);
-                        //write to disk
-                        File.WriteAllLines(newLogFile, newArray.ToArray());
-                    }
-                        
                     if (ProgramLogEnabled == true)
                     {
-                        if (File.Exists(uwgLogFile) && uwgCfgArray.Length > 0)
+                        //tidy up the newArray and write to newLogFile
+                        if (newArray.Length > 0)
                         {
-                            //tidy up uwgLogFile
-                            uwgCfgArray = File.ReadAllLines(uwgLogFile);
-                            //remove blank lines
-                            uwgCfgArray = uwgCfgArray.Where(x => !string.IsNullOrEmpty(x)).ToArray();
                             //sort the lines alphabetically ascending
-                            Array.Sort(uwgCfgArray);
-                            //remove duplicates
-                            File.WriteAllLines(uwgLogFile, uwgCfgArray.Distinct().ToArray());
+                            Array.Sort(newArray);
+                            //write to disk
+                            File.WriteAllLines(newLogFile, newArray);
                         }
 
-                        if (File.Exists(allGroupsFile) && allGroupsArray.Length > 0)
+                        //tidy up the uwgLogArray and write to uwgLogFile
+                        if (uwgLogArray.Length > 0)
                         {
-                            //tidy up allGroupsFile
-                            allGroupsArray = File.ReadAllLines(allGroupsFile);
                             //remove blank lines
-                            allGroupsArray = allGroupsArray.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                            //uwgCfgArray = uwgCfgArray.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                            //sort the lines alphabetically ascending
+                            Array.Sort(uwgLogArray);
+                            //write to disk
+                            File.WriteAllLines(uwgLogFile, uwgLogArray);
+                        }
+
+                        //tidy up the allGroupsArray and write to allGroupsFile
+                        if (allGroupsArray.Length > 0)
+                        {
                             //sort the lines alphabetically ascending
                             Array.Sort(allGroupsArray);
-                            //remove duplicates
-                            File.WriteAllLines(allGroupsFile, allGroupsArray.Distinct().ToArray());
+                            //write to disk
+                            File.WriteAllLines(allGroupsFile, allGroupsArray);
                         }
 
-                        if (File.Exists(dupeLogFile) && dupeArray.Length > 0)
+                        //tidy up the dupeArray and write to dupeLogFile
+                        if (dupeArray.Length > 0)
                         {
-                            //tidy up dupeLogFile
-                            dupeArray = File.ReadAllLines(dupeLogFile);
                             //sort the lines alphabetically ascending
                             Array.Sort(dupeArray);
-                            //write to disk if not empty
-                            File.WriteAllLines(dupeLogFile, dupeArray.ToArray());
+                            //remove duplicates and write to disk
+                            File.WriteAllLines(dupeLogFile, dupeArray.Distinct());
                         }
+
+                        //test newGroupArray
+                        //first remove all comments // from uwgCfgArray
+                        //this works but only changes the first occurance
+                        //uwgCfgArray = uwgCfgArray.ToList().Select(x => Regex.Replace(x, @"^//", "")).ToArray();
+                        //works -- but I would rather use regex to get the starts with ^
+                        uwgCfgArray = uwgCfgArray.Select(x => x.Replace(@"//", "")).ToArray();
+
+                        //then remove uwgCfgArray from allGroupsArray
+                        newGroupArray = allGroupsArray.Except(uwgCfgArray).ToArray();
+                        
+                        //File.WriteAllLines("_1.log", uwgCfgArray);
+
+                        //sort the lines alphabetically ascending
+                        Array.Sort(newGroupArray);
+                        //write to disk
+                        File.WriteAllLines(newGroupsFile, newGroupArray);
                     }
 
                     //purging old strm-files and deleting empty directories
                     if (PurgeFilesEnabled == true)
                     {
-                        outText = (DateTime.Now + ": " + "*** Purging files in: " + OutDirectory);
+                        outText = $"{DateTime.Now}: *** Purging files in: {OutDirectory}";
                         Console.WriteLine(outText);
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
                         //get all strm-files on disk into array
-                        filesOnDiskArray = Directory.GetFiles(OutDirectory, "*.strm", SearchOption.AllDirectories);
+                        filesOnDiskArray = Directory.GetFiles(OutDirectory, $"*{strmEXT}", SearchOption.AllDirectories);
 
                         //remove content of foundArray from filesOnDiskArray -- left will be titles no longer in m3u8-file
                         purgeArray = filesOnDiskArray.Except(foundArray).ToArray();
 
-                        //write purgeArray to purgeFile if not empty
-                        if (purgeArray.Length > 0) File.WriteAllLines(purgeFile, purgeArray.ToArray());
+                        //set false as long as nothing was purged
+                        bool hasPurged = false;
 
-                        //purgeArray will now contain items to delete, here we split each array into string
-                        foreach (string purgeItem in purgeArray)
+                        //tidy up the purgeArray and write to purgeLogFile
+                        if (purgeArray.Length > 0)
                         {
-                            //if file found
-                            if (File.Exists(purgeItem))
+                            Array.Sort(purgeArray);
+                            File.WriteAllLines(purgeLogFile, purgeArray);
+
+                            //purgeArray will now contain items to delete, here we split each array into string
+                            foreach (string purgeItem in purgeArray)
                             {
-                                //delete file 
-                                File.Delete(purgeItem);
-                                outText = (DateTime.Now + ": " + "Purged file: " + purgeItem);
-                                if (ProgramLogEnabled == true) programLog.WriteLine(outText);
+                                //if file found
+                                if (File.Exists(purgeItem))
+                                {
+                                    //delete file 
+                                    File.Delete(purgeItem);
+                                    outText = $"{DateTime.Now}: Purged file: {purgeItem}";
+                                    if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
-                                //set contentType
-                                if (purgeItem.Contains(MoviesSubDir))
-                                    contentType = "movie";
-                                else if (purgeItem.Contains(SeriesSubDir))
-                                    contentType = "series";
-                                else
-                                    contentType = "tv";
+                                    //set contentType
+                                    if (purgeItem.Contains(MoviesSubDir))
+                                        contentType = "movie";
+                                    else if (purgeItem.Contains(SeriesSubDir))
+                                        contentType = "series";
+                                    else
+                                        contentType = "tv";
 
-                                //counter purge up
-                                if (contentType == "movie")
-                                    cMoviesPurge++;
-                                if (contentType == "series")
-                                    cSeriesPurge++;
-                                if (contentType == "tv")
-                                    cTVPurge++;
+                                    //counter purge up
+                                    if (contentType == "movie")
+                                        cMoviesPurge++;
+                                    if (contentType == "series")
+                                        cSeriesPurge++;
+                                    if (contentType == "tv")
+                                        cTVPurge++;
+
+                                    //something was purged
+                                    hasPurged = true;
+                                }
                             }
                         }
 
-                        //delete empty directories which can be a left over after purging
-                        foreach (var directory in Directory.GetDirectories(OutDirectory, "*", SearchOption.AllDirectories))
+                        //only run directory cleanup if something was purged
+                        if (hasPurged == true)
                         {
-                            if (Directory.GetFiles(directory, "*", SearchOption.AllDirectories).Length == 0)
+                            //delete empty directories which can be a left over after a purge
+                            foreach (var directory in Directory.GetDirectories(OutDirectory, "*", SearchOption.AllDirectories))
                             {
-                                Directory.Delete(directory, true);
-                                outText = (DateTime.Now + ": " + "Deleted empty directory: " + directory);
-                                if (ProgramLogEnabled == true) programLog.WriteLine(outText);
+                                if (Directory.GetFiles(directory, "*", SearchOption.AllDirectories).Length == 0)
+                                {
+                                    Directory.Delete(directory, true);
+                                    outText = $"{DateTime.Now}: Deleted empty directory: {directory}";
+                                    if (ProgramLogEnabled == true) programLog.WriteLine(outText);
+                                }
                             }
                         }
                     }       
@@ -1029,38 +1062,58 @@ namespace m2strm
                     cSkippedSeries = cSeries - cSeriesActual;
                     cSkippedTV = cTV - cTVActual;
 
+                    //set counters output strings
+                    string newMovies = "0 new";
+                    string updateMovies = "";
+                    string skipMovies = "";
+                    string dupeMovies = "";
+                    string purgeMovies = "";
+                    string totalMovies = "";
+                    string newSeries = "0 new";
+                    string updateSeries = "";
+                    string skipSeries = "";
+                    string dupeSeries = "";
+                    string purgeSeries = "";
+                    string totalSeries = "";
+                    string newTV = "0 new";
+                    string updateTV = "";
+                    string skipTV = "";
+                    string dupeTV = "";
+                    string purgeTV = "";
+                    string totalTV = "";
+
                     //set counters output
-                    if (cMoviesActual > 0) newMovies = (Convert.ToString(cMoviesActual) + " new");
-                    if (cMoviesUpdate > 0) updateMovies = ", " + (Convert.ToString(cMoviesUpdate) + " updated");
-                    if (cSkippedMovies > 0) skipMovies = ", " + (Convert.ToString(cSkippedMovies) + " skipped");
-                    if (cMoviesDupe > 0) dupeMovies = " (whereof " + (Convert.ToString(cMoviesDupe) + " dupes)");
-                    if (cMoviesPurge > 0) purgeMovies = ", " + (Convert.ToString(cMoviesPurge) + " purged");
-                    if (cMovies > 0) totalMovies = ", " + (Convert.ToString(cMovies) + " in total");
+                    if (cMoviesActual > 0) newMovies = $"{Convert.ToString(cMoviesActual)} new";
+                    if (cMoviesUpdate > 0) updateMovies = $", {Convert.ToString(cMoviesUpdate)} updated";
+                    if (cSkippedMovies > 0) skipMovies = $", {Convert.ToString(cSkippedMovies)} skipped";
+                    if (cMoviesDupe > 0) dupeMovies = $" (whereof {Convert.ToString(cMoviesDupe)} dupes)";
+                    if (cMoviesPurge > 0) purgeMovies = $", {Convert.ToString(cMoviesPurge)} purged";
+                    if (cMovies > 0) totalMovies = $", {Convert.ToString(cMovies)} in total";
 
-                    if (cSeriesActual > 0) newSeries = (Convert.ToString(cSeriesActual) + " new");
-                    if (cSeriesUpdate > 0) updateSeries = ", " + (Convert.ToString(cSeriesUpdate) + " updated");
-                    if (cSkippedSeries > 0) skipSeries = ", " + (Convert.ToString(cSkippedSeries) + " skipped");
-                    if (cSeriesDupe > 0) dupeSeries = " (whereof " + (Convert.ToString(cSeriesDupe) + " dupes)");
-                    if (cSeriesPurge > 0) purgeSeries = ", " + (Convert.ToString(cSeriesPurge) + " purged");
-                    if (cSeries > 0) totalSeries = ", " + (Convert.ToString(cSeries) + " in total");
+                    if (cSeriesActual > 0) newSeries = $"{Convert.ToString(cSeriesActual)} new";
+                    if (cSeriesUpdate > 0) updateSeries = $", {Convert.ToString(cSeriesUpdate)} updated";
+                    if (cSkippedSeries > 0) skipSeries = $", {Convert.ToString(cSkippedSeries)} skipped";
+                    if (cSeriesDupe > 0) dupeSeries = $" (whereof {Convert.ToString(cSeriesDupe)} dupes)";
+                    if (cSeriesPurge > 0) purgeSeries = $", {Convert.ToString(cSeriesPurge)} purged";
+                    if (cSeries > 0) totalSeries = $", {Convert.ToString(cSeries)} in total";
 
-                    if (cTVActual > 0) newTV = (Convert.ToString(cTVActual) + " new");
-                    if (cTVUpdate > 0) updateTV = ", " + (Convert.ToString(cTVUpdate) + " updated");
-                    if (cSkippedTV > 0) skipTV = ", " + (Convert.ToString(cSkippedTV) + " skipped");
-                    if (cTVDupe > 0) dupeTV = " (whereof " + (Convert.ToString(cTVDupe) + " dupes)");
-                    if (cTVPurge > 0) purgeTV = ", " + (Convert.ToString(cTVPurge) + " purged");
-                    if (cTV > 0) totalTV = ", " + (Convert.ToString(cTV) + " in total");
+                    if (cTVActual > 0) newTV = $"{Convert.ToString(cTVActual)} new";
+                    if (cTVUpdate > 0) updateTV = $", {Convert.ToString(cTVUpdate)} updated";
+                    if (cSkippedTV > 0) skipTV = $", {Convert.ToString(cSkippedTV)} skipped";
+                    if (cTVDupe > 0) dupeTV = $" (whereof {Convert.ToString(cTVDupe)} dupes)";
+                    if (cTVPurge > 0) purgeTV = $", {Convert.ToString(cTVPurge)} purged";
+                    if (cTV > 0) totalTV = $", {Convert.ToString(cTV)} in total";
 
                     //write summary to console (and log if enabled)
-                    outText = (DateTime.Now + ": *** Movies summary: " + newMovies + updateMovies + skipMovies + dupeMovies + purgeMovies + totalMovies);
+                    outText = $"{DateTime.Now}: *** Movies summary: {newMovies}{updateMovies}{skipMovies}{dupeMovies}{purgeMovies}{totalMovies}";
                     Console.WriteLine(outText);
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
-                    outText = (DateTime.Now + ": *** Episodes summary: " + newSeries + updateSeries + skipSeries + dupeSeries + purgeSeries + totalSeries);
+                    outText = $"{DateTime.Now}: *** Episodes summary: {newSeries}{updateSeries}{skipSeries}{dupeSeries}{purgeSeries}{totalSeries}";
                     Console.WriteLine(outText);
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
-                    outText = (DateTime.Now + ": *** TV-channels summary: " + newTV + updateTV + skipTV + dupeTV + purgeTV + totalTV);
+                    outText = $"{DateTime.Now}: *** TV-channels summary: {newTV}{updateTV}{skipTV}{dupeTV}{purgeTV}{totalTV}";
                     Console.WriteLine(outText);
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                 }
@@ -1069,7 +1122,7 @@ namespace m2strm
                     if (fileNotFound == true)
                     {
                         //we will end up here if the file given either as arg or in config was not found
-                        Console.WriteLine("File not found - " + m3u8File);
+                        Console.WriteLine($"File not found - {m3u8File}");
                         
                         //also check and tell if config or uwg was not found
                         if (!File.Exists(configFile))
@@ -1090,14 +1143,14 @@ namespace m2strm
                 string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                 ts.Hours, ts.Minutes, ts.Seconds,
                 ts.Milliseconds / 10);
-                outText = (DateTime.Now + ": " + "*** Processing time: " + elapsedTime);
+                outText = $"{DateTime.Now}: *** Processing time: {elapsedTime}";
                 Console.WriteLine(outText);
                 if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
                 if (ProgramLogEnabled == true)
                 {
                     //logging ends here
-                    programLog.WriteLine(DateTime.Now + ": " + "*** Log end, " + programFileName + ", " + version);
+                    programLog.WriteLine($"{DateTime.Now}: *** Log end, {programFileName}, {version}");
                     programLog.Flush();
                     programLog.Close();
                 }
@@ -1106,23 +1159,23 @@ namespace m2strm
             //error codes
             catch (Exception ex)
             {
-                string ErrorLogFile = (AppDomain.CurrentDomain.BaseDirectory + "error.log");
+                string ErrorLogFile = $"{AppDomain.CurrentDomain.BaseDirectory}error.log";
                 StreamWriter ErrorLog = File.AppendText(ErrorLogFile);
                 string outText = "";
 
-                outText = (DateTime.Now + ": " + "ERROR: " + ex.Message);
+                outText = $"{DateTime.Now}: ERROR: {ex.Message}";
                 Console.WriteLine(outText);
                 ErrorLog.WriteLine(outText);
 
-                outText = (DateTime.Now + ": " + "ERROR: " + ex.StackTrace);
+                outText = $"{DateTime.Now}: ERROR: {ex.StackTrace}";
                 ErrorLog.WriteLine(outText);
 
                 ErrorLog.Flush();
                 ErrorLog.Close();
 
-                outText = ("Press any key to quit...");
-                Console.WriteLine(outText);
-                Console.ReadLine();
+                //outText = ("Press any key to quit...");
+                //Console.WriteLine(outText);
+                //Console.ReadLine();
             }
         }
 
@@ -1306,16 +1359,6 @@ namespace m2strm
             fileName = fileName.Trim('.', ' ');
 
             return fileName;
-        }
-
-        public static Version EnsureSupportedDotNetFrameworkVersion(Version supportedVersion)
-        //check .Net version
-        {
-            var fileVersion = typeof(int).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
-            var currentVersion = new Version(fileVersion.Version);
-            if (currentVersion < supportedVersion)
-                throw new NotSupportedException($"Microsoft .NET Framework {supportedVersion} or newer is required. Current version ({currentVersion}) is not supported.");
-            return currentVersion;
         }
     }
 }
