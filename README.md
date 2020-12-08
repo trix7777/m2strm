@@ -57,10 +57,10 @@ Create configuration with `m2strm.exe /C` and then edit the configuration for yo
 - Example values: `"X:\videos\strm\"`, `"\\server\videos\strm\"`, `"strm"`
 - Mandatory: No (uses default value).
 
-`m3u8File`: Where your M3U8-file is/to be located.
-- Default value is: "" (you have to set this value or you need to use an argument instead).
-- Example values: `"X:\myapp\m2strm\original.m3u8"`, `"original.m3u8"`
-- Mandatory: Yes, if not specified as argument or `DownloadM3U8Enabled` is `True`.
+`m3u8File`: Where your M3U8-file is/will be located.
+- Default value is: ""
+- Example values: `"X:\myotherapp\original.m3u8"`, `"original.m3u8"`, `""`
+- Mandatory: No (needs be set if not specified when arg `/U` or when `DownloadM3U8Enabled` is `False`).
 
 `MoviesSubDir`, `SeriesSubDir`, `TVSubDir`: Sub-directory names for your movies, series and tv content.
 - Default values are respectively: `"VOD Movies"`, `"VOD Series"`, `"TV Channels"`.
