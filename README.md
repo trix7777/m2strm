@@ -14,7 +14,8 @@ Original developer: [TimTester.in](https://timtester.in/)
 - Updates content: if URL for an item changed, the strm-file will be updated accordingly.
 - Purging of old strm-files and empty directories.
 - New groups log: a file containing new groups since configuration last changed.
-- Even more...  still working on it. Please don't hesitate to come forward with ideas or feature requests, under issues.
+- Even more...  still working on it. Please don't hesitate to come forward with ideas or feature requests, under discussions.
+- Found a bug? Please report it under issues with details on how to replicate it.
 
 #### Tested with IPTV-providers:
 - N1
