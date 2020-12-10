@@ -84,7 +84,7 @@ Create configuration with `m2strm.exe /C` and then edit the configuration for yo
 `ProgramLogEnabled`
 - Default value is: `"True"` -- will create the program log (`m2strm.log`) in a subdirectory `/log` of the program file. Will also create a couple of other logs (see below).
 - Accepted values are: "" (same as default above), `"True"` (Enabled), `"False"` (Disabled).  
-- Mandatory: No (uses default value).
+- Mandatory: No (uses default value).  
 `allgroups.log`: contains all groups found in source just like `m2strm.exe /U` does but outputs to allgroups.log instead, during each parse.  
 `dupes.log`: contains duplicate items found. Read more about dupes below.  
 `new.log`: contains new items found.  
