@@ -113,10 +113,4 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <Target Name="AfterBuild">
-    <Copy SourceFiles="$(OutDir)$(TargetFileName)"
-          DestinationFolder="Z:\m2strm_dev\"
-          OverwriteReadOnlyFiles="true"
-          SkipUnchangedFiles="false" />
-  </Target>
 </Project>

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,7 +16,7 @@ namespace m2strm
             try
             {
                 //set various
-                string creator = "Original by TimTester ©2020\nForked with permissions, converted to C# (Mono compatible) and developed by trix77 ©2020";
+                string creator = "Original by TimTester Â©2020\nForked with permissions, converted to C# (Mono compatible) and developed by trix77 Â©2020";
                 string location = Convert.ToString(Environment.GetCommandLineArgs()[0]);
                 string programFileName = Path.GetFileName(location);
                 string programName = "m2strm";
@@ -1187,6 +1187,17 @@ namespace m2strm
 
             //remove special (really really customized)
             fileName = Regex.Replace(fileName, @"Se/dk/no", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"(HelikopterrÃ¥net)\sS(\d+)\sEP(\d+)", "$1 S$2 $1 S$2E$3", RegexOptions.IgnoreCase);
+            //O instead of 0
+            fileName = Regex.Replace(fileName, @"\sSO(\d)", " S0$1", RegexOptions.IgnoreCase);
+            //ExxExx instead of SxxExx
+            fileName = Regex.Replace(fileName, @"E(\d+)E(\d+)", "S$1E$2", RegexOptions.IgnoreCase);
+            //Sxx EPxx
+            fileName = Regex.Replace(fileName, @"\sS(\d+)\sEP(\d+)", " S$1E$2", RegexOptions.IgnoreCase);
+            //SxxSxx
+            fileName = Regex.Replace(fileName, @"S(\d+)S(\d+)", "S$1E$2", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"&#039;", "'", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"&amp;", "&", RegexOptions.IgnoreCase);
 
             //remove and replace chars -- this is done because GetInvalidFileNameChars behaves differently depending on OS
             //here we do it on all OS to make the output more alike no matter OS
@@ -1199,21 +1210,22 @@ namespace m2strm
                 .Replace("\"", "-")
                 .Replace(";", "-")
                 .Replace("=", "-")
-                .Replace("–", "-")
-                .Replace("·", "-")
+                .Replace("â€“", "-")
+                .Replace("Â·", "-")
                 .Replace("{", "[")
                 .Replace("}", "]")
-                .Replace("’", "'")
-                .Replace("‘", "'")
-                .Replace("´", "'")
+                .Replace("â€™", "'")
+                .Replace("â€˜", "'")
+                .Replace("Â´", "'")
                 .Replace("`", "'")
-                .Replace("…", "...")
-                .Replace("“", "'")
+                .Replace("â€¦", "...")
+                .Replace("â€œ", "'")
+                .Replace("âž”", "-")
                 .Replace("?", "").Trim()
                 .Replace("<", "").Trim()
                 .Replace(">", "").Trim()
                 .Replace(",", "").Trim()
-                .Replace("°", "").Trim();
+                .Replace("Â°", "").Trim();
 
             //normal filter, which behaves differently depending on OS
             fileName = Path.GetInvalidFileNameChars().Aggregate(fileName, (current, c) => current.Replace(c.ToString(), "")).Trim();
@@ -1265,6 +1277,19 @@ namespace m2strm
 
             //replace space between Sxx and Exx (escape \ by double \\) ($1 and $2 capture group 1 and 2)
             fileName = Regex.Replace(fileName, @"(s\d+)\s(e\d+)", "$1$2", RegexOptions.IgnoreCase);
+
+            //replace eg 1x01 with S01E01
+            fileName = Regex.Replace(fileName, @"(\d)x(\d+)", "S0$1E$2", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"(\d+)x(\d+)", "S$1E$2", RegexOptions.IgnoreCase);
+
+            //remove dash before SxxExx
+            fileName = Regex.Replace(fileName, @"-\s(s\d+)(e\d+)", "$1$2", RegexOptions.IgnoreCase);
+
+            //remove everything after SxxExx
+            fileName = Regex.Replace(fileName, @"(s\d+)(e\d+).*", "$1$2", RegexOptions.IgnoreCase).Trim('.', ' ');
+
+            //remove double naming
+            fileName = Regex.Replace(fileName, @".*s(\d+)\s", "", RegexOptions.IgnoreCase).Trim('.', ' ');
 
             //remove erroneous spaces
             fileName = fileName
@@ -1320,21 +1345,21 @@ namespace m2strm
                 .Replace("\"", "-")
                 .Replace(";", "-")
                 .Replace("=", "-")
-                .Replace("–", "-")
-                .Replace("·", "-")
+                .Replace("â€“", "-")
+                .Replace("Â·", "-")
                 .Replace("{", "[")
                 .Replace("}", "]")
-                .Replace("’", "'")
-                .Replace("‘", "'")
-                .Replace("´", "'")
+                .Replace("â€™", "'")
+                .Replace("â€˜", "'")
+                .Replace("Â´", "'")
                 .Replace("`", "'")
-                .Replace("…", "...")
-                .Replace("“", "'")
+                .Replace("â€¦", "...")
+                .Replace("â€œ", "'")
                 .Replace("?", "").Trim()
                 .Replace("<", "").Trim()
                 .Replace(">", "").Trim()
                 .Replace(",", "").Trim()
-                .Replace("°", "").Trim();
+                .Replace("Â°", "").Trim();
 
             //normal filter, which behaves differently depending on OS
             fileName = Path.GetInvalidFileNameChars().Aggregate(fileName, (current, c) => current.Replace(c.ToString(), "")).Trim();
