@@ -1182,23 +1182,21 @@ namespace m2strm
         //removes illegal file name characters
         public static string NAMEFilterFileNameChars(string fileName)
         {
+            //decode html-encoded chars
+            fileName = WebUtility.HtmlDecode(fileName);
+
             //remove VOD: from beginning of names (keeping IgnoreCase because Albania uses Vod: in filenames)
             fileName = Regex.Replace(fileName, @"^VOD:\s", "", RegexOptions.IgnoreCase);
-
-            //remove special (really really customized)
-            fileName = Regex.Replace(fileName, @"Se/dk/no", "", RegexOptions.IgnoreCase);
-            fileName = Regex.Replace(fileName, @"(Helikopterrånet)\sS(\d+)\sEP(\d+)", "$1 S$2 $1 S$2E$3", RegexOptions.IgnoreCase);
-            //O instead of 0
+            //replace O with 0 in eg SO1E01
             fileName = Regex.Replace(fileName, @"\sSO(\d)", " S0$1", RegexOptions.IgnoreCase);
-            //ExxExx instead of SxxExx
+            //replace erroneous ExxExx with SxxExx
             fileName = Regex.Replace(fileName, @"E(\d+)E(\d+)", "S$1E$2", RegexOptions.IgnoreCase);
-            //Sxx EPxx
-            fileName = Regex.Replace(fileName, @"\sS(\d+)\sEP(\d+)", " S$1E$2", RegexOptions.IgnoreCase);
-            //SxxSxx
+            //replace erroneous SxxSxx with SxxExx
             fileName = Regex.Replace(fileName, @"S(\d+)S(\d+)", "S$1E$2", RegexOptions.IgnoreCase);
-            fileName = Regex.Replace(fileName, @"&#039;", "'", RegexOptions.IgnoreCase);
-            fileName = Regex.Replace(fileName, @"&amp;", "&", RegexOptions.IgnoreCase);
-
+            //replace Sxx EPxx with SxxExx
+            fileName = Regex.Replace(fileName, @"\sS(\d+)\sEP(\d+)", " S$1E$2", RegexOptions.IgnoreCase);
+            //add missing space after comma
+            fileName = Regex.Replace(fileName, @",(\w)", ", $1");
             //remove and replace chars -- this is done because GetInvalidFileNameChars behaves differently depending on OS
             //here we do it on all OS to make the output more alike no matter OS
             fileName = fileName
@@ -1320,11 +1318,60 @@ namespace m2strm
             //replace brackets with parentheses only on 4-digit year
             fileName = Regex.Replace(fileName, @"\[(\d{4})\]", "($1)");
 
+            //problematic Swedish namings; Swedish movie and serie titles should not use upper case letters on each word in a title as in the English language,
+            //Windows would in some instances not be able to access duplicates through Samba on Linux if not corrected.
+            //This list needs to be constantly updated:
+            fileName = Regex.Replace(fileName, @"B.st i K.ket", "Bäst i köket", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"En bondg.rd mitt i stan", "En bondgård mitt i stan", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Ensam i vildmarken", "Ensam i vildmarken", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Insats torsk - sexhandeln inifrån", "Insats Torsk - Sexhandeln inifrån", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Mästarnas M.stare", "Mästarnas mästare", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Morden I Sandhamn", "Morden i Sandhamn", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Sommaren med sl.kten", "Sommaren med släkten", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Svenska Fall", "Svenska fall", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Sveriges Yngsta M.sterkock", "Sveriges yngsta mästerkock", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Udda Veckor", "Udda veckor", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Wahlgrens v.rld", "Wahlgrens värld", RegexOptions.IgnoreCase);
+
+            //correct case The Of A An To On From if not preceeded by dash
+            fileName = Regex.Replace(fileName, @"(?<!-)\sThe\s", " the ");
+            fileName = Regex.Replace(fileName, @"(?<!-)\sOf\s", " of ");
+            fileName = Regex.Replace(fileName, @"(?<!-)\sA\s", " a ");
+            fileName = Regex.Replace(fileName, @"(?<!-)\sAn\s", " an ");
+            fileName = Regex.Replace(fileName, @"(?<!-)\sTo\s", " to ");
+            fileName = Regex.Replace(fileName, @"(?<!-)\sOn\s", " on ");
+            fileName = Regex.Replace(fileName, @"(?<!-)\sFrom\s", " from ");
+
+            //correct case the of a an to if on from preceeded by dash
+            fileName = Regex.Replace(fileName, @"-\sthe\s", "- The ");
+            fileName = Regex.Replace(fileName, @"-\sof\s", "- Of ");
+            fileName = Regex.Replace(fileName, @"-\sa\s", "- A ");
+            fileName = Regex.Replace(fileName, @"-\san\s", "- An ");
+            fileName = Regex.Replace(fileName, @"-\sto\s", "- To ");
+            fileName = Regex.Replace(fileName, @"-\son\s", "- On ");
+            fileName = Regex.Replace(fileName, @"-\sfrom\s", "- From ");
+
+            //truncate if numbers has space in them, eg 10 000 to 10000
+            fileName = Regex.Replace(fileName, @"(\d)\s(\d)", "$1$2");
+
             //replace without name with _NONAME
             fileName = Regex.Replace(fileName, @"^$", "_NONAME");
 
             //remove leading and trailing period and space
             fileName = fileName.Trim('.', ' ');
+
+            //misc namefix
+            fileName = Regex.Replace(fileName, @"^DAVE", "Dave");
+            fileName = Regex.Replace(fileName, @"^power", "Power");
+            fileName = Regex.Replace(fileName, @"^RUN", "Run");
+
+            //add parentheses to year if missing, only if begins with 19 or 20 and is not already in parentheses
+            //do not add this to start of string eg if movie name is '1917 (2019)'
+            //also, if preceded with dash, remove the dash
+            fileName = Regex.Replace(fileName, @"(?<!^)( -|- |-|)(?<!\()(19|20)(\d{2})(?!\))$", "($2$3)").Trim('.', ' ');
+
+            //add missing space before year if missing, only if begins with 19 or 20, is 4 numbers and ends with number
+            fileName = Regex.Replace(fileName, @"(?<!\s)\((19|20)(\d{2})\)$", " ($1$2)");
 
             return fileName;
         }
@@ -1355,6 +1402,7 @@ namespace m2strm
                 .Replace("`", "'")
                 .Replace("…", "...")
                 .Replace("“", "'")
+                .Replace("➔", "-")
                 .Replace("?", "").Trim()
                 .Replace("<", "").Trim()
                 .Replace(">", "").Trim()
