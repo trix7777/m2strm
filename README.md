@@ -2,20 +2,20 @@
 
 Creates STRM-files from M3U8-file.
 
-Original developer: [TimTester.in](https://timtester.in/)
+Download latest release [here](https://github.com/trix7777/m2strm/releases)
 
 #### New in version 3.0:
 - *Configuration file*: You can now use a configuration file for all user settings.
 - *Unwanted groups file*: this file contains groups you do not want to process.
 - Program log enable/disable.
 - Download M3U8-file: downloads your m3u8 directly from your IPTV-provider and then processes it in one go.
-- Fully Mono compatible = runs on Linux with Mono installed - see [here](https://www.mono-project.com/docs/getting-started/install/linux/)
+- Fully Mono compatible = runs on Linux with Mono installed - see [here](https://www.mono-project.com/download/stable/#download-lin)
 - Dupe checking: only output the first of dupes found.
 - Updates content: if URL for an item changed, the strm-file will be updated accordingly.
 - Purging of old strm-files and empty directories.
 - New groups log: a file containing new groups since configuration last changed.
-- Even more...  still working on it. Please don't hesitate to come forward with ideas or feature requests, under discussions.
-- Found a bug? Please report it under issues with details on how to replicate it.
+- Even more...  still working on it. Please don't hesitate to come forward with ideas or feature requests, under [Discussions](https://github.com/trix7777/m2strm/discussions)
+- Found a bug? Please report it under [Issues](https://github.com/trix7777/m2strm/issues) with details on how to replicate it.
 
 #### Tested with IPTV-providers:
 - N1
