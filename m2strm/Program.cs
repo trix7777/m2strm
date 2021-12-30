@@ -16,7 +16,7 @@ namespace m2strm
             try
             {
                 //set various
-                string creator = "Original by TimTester ©2020\nForked with permissions, converted to C# (Mono compatible) and developed by trix77 ©2020";
+                string creator = "trix77 ©2022";
                 string location = Convert.ToString(Environment.GetCommandLineArgs()[0]);
                 string programFileName = Path.GetFileName(location);
                 string programName = "m2strm";
@@ -1184,6 +1184,11 @@ namespace m2strm
         {
             //decode html-encoded chars
             fileName = WebUtility.HtmlDecode(fileName);
+
+            //req by laurent734
+            fileName = Regex.Replace(fileName, @"^\|FR\||\|VM\||\|4K\|\s", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\s\|\svost\sfr\s", " ", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\)(\s|)(\||-|\s)(\s|)(\(|)(multi\ssub|multi)(\)|)$", "", RegexOptions.IgnoreCase);
 
             //remove VOD: from beginning of names (keeping IgnoreCase because Albania uses Vod: in filenames)
             fileName = Regex.Replace(fileName, @"^VOD:\s", "", RegexOptions.IgnoreCase);
