@@ -42,6 +42,7 @@ namespace m2strm
                 bool VerboseConsoleOutputEnabled = false;
                 bool ProgramLogEnabled = true;
                 bool PurgeFilesEnabled = true;
+                bool SeriesGroupSubdirEnabled = false;
                 bool MovieGroupSubdirEnabled = false;
                 bool DownloadM3U8Enabled = false;
 
@@ -75,6 +76,9 @@ namespace m2strm
 
                 if (ConfigurationManager.AppSettings.Get("PurgeFilesEnabled") != null && ConfigurationManager.AppSettings.Get("PurgeFilesEnabled") != "")
                     PurgeFilesEnabled = Convert.ToBoolean(ConfigurationManager.AppSettings.Get("PurgeFilesEnabled"));
+
+                if (ConfigurationManager.AppSettings.Get("SeriesGroupSubdirEnabled") != null && ConfigurationManager.AppSettings.Get("SeriesGroupSubdirEnabled") != "")
+                    SeriesGroupSubdirEnabled = Convert.ToBoolean(ConfigurationManager.AppSettings.Get("SeriesGroupSubdirEnabled"));
 
                 if (ConfigurationManager.AppSettings.Get("MovieGroupSubdirEnabled") != null && ConfigurationManager.AppSettings.Get("MovieGroupSubdirEnabled") != "")
                     MovieGroupSubdirEnabled = Convert.ToBoolean(ConfigurationManager.AppSettings.Get("MovieGroupSubdirEnabled"));
@@ -266,6 +270,7 @@ namespace m2strm
                         userSettings.Add("VerboseConsoleOutputEnabled", "");
                         userSettings.Add("ProgramLogEnabled", "");
                         userSettings.Add("PurgeFilesEnabled", "");
+                        userSettings.Add("SeriesGroupSubdirEnabled", "");
                         userSettings.Add("MovieGroupSubdirEnabled", "");
                         userSettings.Add("DownloadM3U8Enabled", "");
                         userSettings.Add("UserURL", "");
@@ -285,6 +290,7 @@ namespace m2strm
                         userSettings["VerboseConsoleOutputEnabled"].Value = Convert.ToString(VerboseConsoleOutputEnabled);
                         userSettings["ProgramLogEnabled"].Value = Convert.ToString(ProgramLogEnabled);
                         userSettings["PurgeFilesEnabled"].Value = Convert.ToString(PurgeFilesEnabled);
+                        userSettings["SeriesGroupSubdirEnabled"].Value = Convert.ToString(SeriesGroupSubdirEnabled);
                         userSettings["MovieGroupSubdirEnabled"].Value = Convert.ToString(MovieGroupSubdirEnabled);
                         userSettings["DownloadM3U8Enabled"].Value = Convert.ToString(DownloadM3U8Enabled);
                         userSettings["UserURL"].Value = UserURL;
@@ -653,6 +659,14 @@ namespace m2strm
                         if (ProgramLogEnabled == true) programLog.WriteLine(outText);
                     }
 
+                    //tell user we are using series-group subfolders if set
+                    if (SeriesGroupSubdirEnabled == true)
+                    {
+                        outText = $"{DateTime.Now}: *** Creating series-group subfolders (set in config).";
+                        Console.WriteLine(outText);
+                        if (ProgramLogEnabled == true) programLog.WriteLine(outText);
+                    }
+
                     //tell user we are using movie-group subfolders if set
                     if (MovieGroupSubdirEnabled == true)
                     {
@@ -663,7 +677,7 @@ namespace m2strm
 
                     //################################### parse start ###################################
                     //now we finally start to parse the m3u8-file
-                        outText = $"{DateTime.Now}: *** Processing {m3u8File}";
+                    outText = $"{DateTime.Now}: *** Processing {m3u8File}";
                     Console.WriteLine(outText);
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
@@ -760,7 +774,10 @@ namespace m2strm
                                     seriesNAME = Regex.Replace(NAME, "s(\\d+)e(\\d+)", "", RegexOptions.IgnoreCase).Trim('.', ' ');
 
                                     //combine path for series
-                                    combinedTypeDir = Path.Combine(SeriesDir, seriesNAME);
+                                    if (SeriesGroupSubdirEnabled == true)
+                                        combinedTypeDir = Path.Combine(SeriesDir, GROUP, seriesNAME);  //with GROUP subdir
+                                    else
+                                        combinedTypeDir = Path.Combine(SeriesDir, seriesNAME);
 
                                     if (VerboseConsoleOutputEnabled == true)
                                     {
@@ -1186,9 +1203,9 @@ namespace m2strm
             fileName = WebUtility.HtmlDecode(fileName);
 
             //req by laurent734
-            fileName = Regex.Replace(fileName, @"^\|FR\||\|VM\||\|4K\|\s", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"^\|(\s|)(4K|AP|FR|N|VM(-4K|))(\s|)(\||)(\s|-)", "", RegexOptions.IgnoreCase);
             fileName = Regex.Replace(fileName, @"\s\|\svost\sfr\s", " ", RegexOptions.IgnoreCase);
-            fileName = Regex.Replace(fileName, @"\)(\s|)(\||-|\s)(\s|)(\(|)(multi\ssub|multi)(\)|)$", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\)(\s|)(\||-|\s)(\s|)(\(|)(multi(\ssub|)|VOST-FR)(\)|)$", "", RegexOptions.IgnoreCase);
 
             //remove VOD: from beginning of names (keeping IgnoreCase because Albania uses Vod: in filenames)
             fileName = Regex.Replace(fileName, @"^VOD:\s", "", RegexOptions.IgnoreCase);
@@ -1386,6 +1403,9 @@ namespace m2strm
         {
             //remove VOD: from beginning of names (keeping IgnoreCase because Albania uses Vod:)
             fileName = Regex.Replace(fileName, @"^VOD:\s", "", RegexOptions.IgnoreCase);
+
+            //remove Series: from beginning of names
+            fileName = Regex.Replace(fileName, @"^Series:\s", "", RegexOptions.IgnoreCase);
 
             //remove and replace chars
             fileName = fileName
