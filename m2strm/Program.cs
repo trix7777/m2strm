@@ -1203,9 +1203,18 @@ namespace m2strm
             fileName = WebUtility.HtmlDecode(fileName);
 
             //req by laurent734
-            fileName = Regex.Replace(fileName, @"^\|(\s|)(4K|AP|FR|N|VM(-4K|))(\s|)(\||)(\s|-)", "", RegexOptions.IgnoreCase);
-            fileName = Regex.Replace(fileName, @"\s\|\svost\sfr\s", " ", RegexOptions.IgnoreCase);
-            fileName = Regex.Replace(fileName, @"\)(\s|)(\||-|\s)(\s|)(\(|)(multi(\ssub|)|VOST-FR)(\)|)$", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"^(\s|)\|(\s|)(4K|AP|AR|DE|DUB|ES|FR|N|R21(\s2021|)|VM(-4K|)|SUB(AR|)|TR|TV|VO)(\s|)(\||)(\s|-|)", "", RegexOptions.IgnoreCase);
+            //VOST-FR,VOSTFR,| VOST,(VOST),VOSTF
+            fileName = Regex.Replace(fileName, @"(\||\(|)(\s|)VOST(-|\)|)(FR|F|)", "", RegexOptions.IgnoreCase);
+            //MULTI after )
+            fileName = Regex.Replace(fileName, @"(\))multi(\s|)$", "$1$2", RegexOptions.IgnoreCase);
+            //MULTI Before Sxx
+            fileName = Regex.Replace(fileName, @"(-|\((SD\s|)|)multi(\)|)\s", "", RegexOptions.IgnoreCase);
+            //MULTI,MULTI SUB,-MULTI,-MULTI SUB,.MULTI,(MULTI),Multi-Audio,Multi Audio
+            fileName = Regex.Replace(fileName, @"(\s\||-|)(\s|)(\(|-|\.|\s|)multi(\ssub|(-|)audio|)(\)|\s|)$", "", RegexOptions.IgnoreCase);
+            //_sub,sub_ar
+            fileName = Regex.Replace(fileName, @"_sub(_AR|)$", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"sub_AR$", "", RegexOptions.IgnoreCase);
 
             //remove VOD: from beginning of names (keeping IgnoreCase because Albania uses Vod: in filenames)
             fileName = Regex.Replace(fileName, @"^VOD:\s", "", RegexOptions.IgnoreCase);
