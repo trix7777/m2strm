@@ -16,7 +16,7 @@ namespace m2strm
             try
             {
                 //set various
-                string creator = "trix77 ©2022";
+                string creator = "trix77 ©2023";
                 string location = Convert.ToString(Environment.GetCommandLineArgs()[0]);
                 string programFileName = Path.GetFileName(location);
                 string programName = "m2strm";
@@ -114,7 +114,7 @@ namespace m2strm
                 string TVDir = Path.Combine(OutDirectory, TVSubDir);
 
                 //date formats
-                string longDate = (DateTime.Now.ToString("yyyyMMddhhmm"));
+                string longDate = (DateTime.Now.ToString("yyyyMMddHHmm"));  //corrected for 24-hour format
                 string shortDate = (DateTime.Now.ToString("yyyyMMdd"));
 
                 //log files locations and names
@@ -148,15 +148,17 @@ namespace m2strm
                 //other file locations and names
                 string uwgCfgFile = $"{BaseDirectory}uwgroups.cfg";
                 string uwgCfgFileOld = $"{uwgCfgFile}.old";
-                string userM3u8File = $"{BaseDirectory}original.m3u8";  //this will be the filename of the user downloaded m3u8-file
-                string userM3uFileTemp = $"{BaseDirectory}_temp.m3u8";  //temporary m3u8 when downloading
+                string userM3u8File = $"{BaseDirectory}original.m3u8";          //this will be the filename of the user downloaded m3u8-file
+                string userM3u8FileTemp = $"{BaseDirectory}_temp.m3u8";         //temporary m3u8 when downloading
+                string userM3u8FileNotValid = $"{BaseDirectory}notvalid.m3u8";  //filename of a downloaded not valid m3u8
 
                 //misc strings
                 string newLine = ("\n");
                 string getNameAndGroupREGEX = @"^#EXTINF:.* \btvg-name=""([^""]+|)"".* \bgroup-title=""([^""]+|)"",.*$";
                 string programLogStartLine = $"{DateTime.Now}: *** Log begin, {programFileName}, {version}";
                 string UserURLCombined = $"{UserURL}:{UserPort}/get.php?username={UserName}&password={UserPass}&type=m3u_plus&output=ts";
-                string strmEXT = ".strm";  //this is the file extension added to output files
+                string strmEXT = ".strm";       //this is the file extension added to output files
+                string contentM3u8 = "#EXTM3U"; //program-downloaded m3u8 must contain this to be accepted as valid
 
                 //init strings
                 string GROUP = "";
@@ -230,10 +232,10 @@ namespace m2strm
                     else if (args[0].ToLower() == "/m")
                     {
                         Console.WriteLine($"*** Downloading M3U8-file to: {userM3u8File}");
-                        webClient.DownloadFile(new Uri(UserURLCombined), userM3uFileTemp);
+                        webClient.DownloadFile(new Uri(UserURLCombined), userM3u8FileTemp);
                         if (File.Exists(userM3u8File))
                             File.Delete(userM3u8File);
-                        File.Move(userM3uFileTemp, userM3u8File);
+                        File.Move(userM3u8FileTemp, userM3u8File);
                         return;
                     }
 
@@ -548,10 +550,27 @@ namespace m2strm
                     if (ProgramLogEnabled == true) programLog.WriteLine(outText);
 
                     //download the m3u8-file
-                    webClient.DownloadFile(new Uri(UserURLCombined), userM3uFileTemp);
-                    if (File.Exists(userM3u8File))
-                        File.Delete(userM3u8File);
-                    File.Move(userM3uFileTemp, userM3u8File);
+                    webClient.DownloadFile(new Uri(UserURLCombined), userM3u8FileTemp);
+
+                    //check validity of m3u8-file
+                    string content = File.ReadAllText(userM3u8FileTemp);
+                    if (content.IndexOf(contentM3u8) > -1)
+                    {
+                        if (File.Exists(userM3u8File))
+                            File.Delete(userM3u8File);
+                        File.Move(userM3u8FileTemp, userM3u8File);
+                        outText = $"{DateTime.Now}: *** M3U8-file validation: Success";
+                        Console.WriteLine(outText);
+                        if (ProgramLogEnabled == true) programLog.WriteLine(outText);
+                    }
+                    else
+                    {
+                        if (File.Exists(userM3u8FileNotValid))
+                            File.Delete(userM3u8FileNotValid);
+                        File.Move(userM3u8FileTemp, userM3u8FileNotValid);
+                        Console.WriteLine($"M3U8-file validation: Failed - {userM3u8FileNotValid}");
+                        return;
+                    }
 
                     if (m3u8File != null || m3u8File != "")
                     {
@@ -1203,7 +1222,7 @@ namespace m2strm
             fileName = WebUtility.HtmlDecode(fileName);
 
             //req by laurent734
-            fileName = Regex.Replace(fileName, @"^(\s|)\|(\s|)(4K|AP|AR|DE|DUB|ES|FR|N|R21(\s2021|)|VM(-4K|)|SUB(AR|)|TR|TV|VO)(\s|)(\||)(\s|-|)", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"^(\s|)\|(\s|)(AP|AR|DE|DUB|ES|FR|N|R21(\s2021|)|VM(-4K|)|SUB(AR|)|TR|TV|VO)(\s|)(\||)(\s|-|)", "", RegexOptions.IgnoreCase);
             //VOST-FR,VOSTFR,| VOST,(VOST),VOSTF
             fileName = Regex.Replace(fileName, @"(\||\(|)(\s|)VOST(-|\)|)(FR|F|)", "", RegexOptions.IgnoreCase);
             //MULTI after )
@@ -1250,6 +1269,8 @@ namespace m2strm
                 .Replace("…", "...")
                 .Replace("“", "'")
                 .Replace("➔", "-")
+                .Replace("³", "3")
+                .Replace("²", "2")
                 .Replace("?", "").Trim()
                 .Replace("<", "").Trim()
                 .Replace(">", "").Trim()
@@ -1275,16 +1296,16 @@ namespace m2strm
             fileName = Regex.Replace(fileName, @"\[(\w+) (\[)", "[$1] $2");
 
             //remove all tags (only tags without numbers to keep years)
-            fileName = Regex.Replace(fileName, @"\[\D+\]", "");
+            //fileName = Regex.Replace(fileName, @"\[\D+\]", "");
 
             //remove [PRE] and misspellings thereof (not needed when remove all tags used)
-            //fileName = Regex.Replace(fileName, @"\[(P|R)(R|F)E\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[(P|R)(R|F)E\]", "", RegexOptions.IgnoreCase);
 
             //remove [Multi-Audio] (not needed when remove all tags used)
-            //fileName = Regex.Replace(fileName, @"\[(Mu.*|Dual)(-|\s)Audio\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[(Mu.*|Dual)(-|\s)Audio\]", "", RegexOptions.IgnoreCase);
 
             //remove [Multi-Subs] (not needed when remove all tags used)
-            //fileName = Regex.Replace(fileName, @"\[Mu.*(-|\s)Sub(|s)\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[Mu.*(-|\s)Sub(|s)\]", "", RegexOptions.IgnoreCase);
 
             //remove [Nordic] tag (keeping this because of some nordic without start bracket)
             fileName = Regex.Replace(fileName, @"(\s|\[)nordic\]", "", RegexOptions.IgnoreCase);
@@ -1292,17 +1313,20 @@ namespace m2strm
             //remove [Only On 4K Devices] tag
             fileName = Regex.Replace(fileName, @"\[Only (On|For) 4K Devices\]", "", RegexOptions.IgnoreCase);
 
-            //remove [4K] tag
-            fileName = Regex.Replace(fileName, @"\[4K\]", "", RegexOptions.IgnoreCase);
+            //replace [4K] tag
+            fileName = Regex.Replace(fileName, @"(\[4K\]|4K)", " [UHD]", RegexOptions.IgnoreCase);
 
             //remove 4K tag
-            fileName = Regex.Replace(fileName, @"4K", "", RegexOptions.IgnoreCase);
+            //fileName = Regex.Replace(fileName, @"4K", "", RegexOptions.IgnoreCase);
 
             //remove stuff (not needed when remove all tags used)
-            //fileName = Regex.Replace(fileName, @"\[K(|I)DS\]", "", RegexOptions.IgnoreCase);
-            //fileName = Regex.Replace(fileName, @"\[SE\]", "", RegexOptions.IgnoreCase);
-            //fileName = Regex.Replace(fileName, @"\[IMDB\]", "", RegexOptions.IgnoreCase);
-            //fileName = Regex.Replace(fileName, @"\[IMDB\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[K(|I)DS\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[SE\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[IMDB\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[IMDB\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[DOCU\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[PEE\]", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"\[DELETE\]", "", RegexOptions.IgnoreCase);
 
             //replace space between Sxx and Exx (escape \ by double \\) ($1 and $2 capture group 1 and 2)
             fileName = Regex.Replace(fileName, @"(s\d+)\s(e\d+)", "$1$2", RegexOptions.IgnoreCase);
@@ -1344,10 +1368,13 @@ namespace m2strm
             
             //correct case of 4K tag
             //fileName = Regex.Replace(fileName, @"(4k|\[4k\])", "[4K]", RegexOptions.IgnoreCase);
-            fileName = Regex.Replace(fileName, @"4k", "4K", RegexOptions.IgnoreCase);
+            //fileName = Regex.Replace(fileName, @"4k", "4K", RegexOptions.IgnoreCase);
 
             //replace brackets with parentheses only on 4-digit year
             fileName = Regex.Replace(fileName, @"\[(\d{4})\]", "($1)");
+
+            //replace year and UHD tag with correct order; (year) [UHD]
+            fileName = Regex.Replace(fileName, @"(\[UHD\]) (\(\d{4}\))", "$2 $1");
 
             //problematic Swedish namings; Swedish movie and serie titles should not use upper case letters on each word in a title as in the English language,
             //Windows would in some instances not be able to access duplicates through Samba on Linux if not corrected.
@@ -1363,6 +1390,7 @@ namespace m2strm
             fileName = Regex.Replace(fileName, @"Sveriges Yngsta M.sterkock", "Sveriges yngsta mästerkock", RegexOptions.IgnoreCase);
             fileName = Regex.Replace(fileName, @"Udda Veckor", "Udda veckor", RegexOptions.IgnoreCase);
             fileName = Regex.Replace(fileName, @"Wahlgrens v.rld", "Wahlgrens värld", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"Who Do You Think You Are. \(SE\)", "Vem tror du att du är", RegexOptions.IgnoreCase);
 
             //correct case The Of A An To On From if not preceeded by dash
             fileName = Regex.Replace(fileName, @"(?<!-)\sThe\s", " the ");
@@ -1395,6 +1423,7 @@ namespace m2strm
             fileName = Regex.Replace(fileName, @"^DAVE", "Dave");
             fileName = Regex.Replace(fileName, @"^power", "Power");
             fileName = Regex.Replace(fileName, @"^RUN", "Run");
+            fileName = Regex.Replace(fileName, @"Tom Clancy( s|s) Jack Ryan", "Tom Clancy's Jack Ryan");
 
             //add parentheses to year if missing, only if begins with 19 or 20 and is not already in parentheses
             //do not add this to start of string eg if movie name is '1917 (2019)'
@@ -1449,9 +1478,9 @@ namespace m2strm
             //remove [Multi-Sub/Audio]
             fileName = Regex.Replace(fileName, @"\[Multi.*(-|\s)(Audio|Sub(|s))\]", "", RegexOptions.IgnoreCase);
 
-            //correct case of 4K tag
+            //replace 4K with UHD tag
             //fileName = Regex.Replace(fileName, @"(4k|\[4k\])", "[4K]", RegexOptions.IgnoreCase);
-            fileName = Regex.Replace(fileName, @"4k", "4K", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"4k", "UHD", RegexOptions.IgnoreCase);
 
             //remove [Only On 4K Devices] tag
             fileName = Regex.Replace(fileName, @"\[Only (On|For) 4K Devices\]", "", RegexOptions.IgnoreCase);

@@ -153,10 +153,14 @@ Linux: Use a local or a mounted network location path instead.
 Windows: NTFS does not normally differentiate between upper or lower case letters in filenames, so when this program encounters two titles, the first one named `"This Title"` and the second one named `"This title"`, it will se them both as the same title and only create output from the first one it finds in the source file, the second one will be seen as a duplicate.  
 Linux: This is resolved by dupe-checking in lowercase (see below under dupes); running on Linux will most likely produce the same output as if running on Windows.
 - Illegal printable file characters, names and path length:
-This program will try its best to make the output more or less the same no matter which platform it is running from. This might however set unnecessary restrictions to Linux filesystems. One example is the file path + filename length which normally in Windows is no more than 260 characters.
+This program will try its best to make the output more or less the same no matter which platform it is running from. This might however set unnecessary restrictions to Linux filesystems. One example is the file path + filename length which in some cases in Windows, is no more than 260 characters.
 
 #### Notes about dupes:
-- So what is a dupe according to the programming?
-All titles found in the source are "filtered" though a special process, some characters are removed, some are replaced. Also all "tags" (everything in the title name that are within brackets, but the year, are considered to be a tag) are removed from the title. This process can in it self, as a side effect, create dupes. An example would be these two titles: `"The Title [PRE] [2020]"` and `"The Title [2020]"`, which both through this filter will become the same `"The Title (2020)"`.
+- So what is a dupe according to this program?
+All titles found in the source are "filtered" though a special process, some characters are removed, some are replaced. Also all "tags" (everything in the title name that are within brackets, but the year\*, are considered to be a tag) are removed from the title.
+
+\* New from version 3.0.2.6: 4K-tags are also kept but converted to UHD-tags. Read more about in in [Releases] (https://github.com/trix7777/m2strm/releases)
+
+This process can in it self, as a side effect, create dupes. An example would be these two titles: `"The Title [PRE] [2020]"` and `"The Title [2020]"`, which both through this filter will become the same `"The Title (2020)"`.
 - Version 3.0.0.5 introduces dupe-checking: Comparing lowercase title with an array of already found lowercase titles, if match; discard. This also resolves the problem with different output depending on OS case-sensitivity.
 - If there are dupes: Only the first found in the source will be considered, the rest will be discarded.
