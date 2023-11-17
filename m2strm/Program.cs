@@ -1222,7 +1222,7 @@ namespace m2strm
             fileName = WebUtility.HtmlDecode(fileName);
 
             //req by laurent734
-            fileName = Regex.Replace(fileName, @"^(\s|)\|(\s|)(AP|AR|DE|DUB|ES|FR|N|R21(\s2021|)|VM(-4K|)|SUB(AR|)|TR|TV|VO)(\s|)(\||)(\s|-|)", "", RegexOptions.IgnoreCase);
+            fileName = Regex.Replace(fileName, @"^(\s|)\|(\s|)(AP|AR|DE|DUB|ES|FR|N|R21(\s2021|)|VM(-4K|)|SUB(AR|)|TR|TV|DV|VO)(\s|)(\||)(\s|-|)", "", RegexOptions.IgnoreCase);
             //VOST-FR,VOSTFR,| VOST,(VOST),VOSTF
             fileName = Regex.Replace(fileName, @"(\||\(|)(\s|)VOST(-|\)|)(FR|F|)", "", RegexOptions.IgnoreCase);
             //MULTI after )
